@@ -8,6 +8,16 @@ import os
 # Third-party libs
 try:
     import openai
+    from openai import OpenAI, AsyncOpenAI
+
+    client = OpenAI(
+        base_url=os.environ.get("OPENAI_API_BASE", "http://<changeme>/v1"),
+        api_key=os.environ.get("OPENAI_API_KEY", "RedHat")
+    )
+    aclient = AsyncOpenAI(
+        base_url=os.environ.get("OPENAI_API_BASE", "http://<changeme>/v1"),
+        api_key=os.environ.get("OPENAI_API_KEY", "RedHat")
+    )
     import chainlit as cl
     from chainlit.input_widget import Select, Switch, Slider
     from pymongo import MongoClient
@@ -18,14 +28,11 @@ except ImportError as e:
     raise
 
 
-openai.api_base = os.environ.get("OPENAI_API_BASE", "http://<changeme>/v1")
-openai.api_key = os.environ.get("OPENAI_API_KEY", "RedHat")
-
 default_model = os.environ.get("DEFAULT_MODEL_NAME")
 if default_model is None:
     default_model = []
-    model_list = openai.Model.list()
-    for model_name in model_list["data"]:
+    model_list = client.models.list()
+    for model_name in model_list.data:
         if "completions" in model_name["id"].split("/"):
             default_model.append(model_name["id"])
 else:
@@ -34,8 +41,8 @@ else:
 default_embeddings_model = os.environ.get("DEFAULT_EMBEDDINGS_MODEL")
 if default_embeddings_model is None:
     default_embeddings_model = []
-    model_list = openai.Model.list()
-    for model_name in model_list["data"]:
+    model_list = client.models.list()
+    for model_name in model_list.data:
         if "embeddings" in model_name["id"].split("/"):
             default_embeddings_model.append(model_name["id"])
 else:
@@ -84,9 +91,10 @@ def db_lookup(search_string: str, embedding_model: str, search_top_n: int = 3,
         List of search results with text and metadata
     """
     results = []
-    embedding = openai.Embedding.create(
-        input=search_string, model=embedding_model
-        )["data"][0]["embedding"]
+    embedding = client.embeddings.create(
+        input=search_string,
+        model=embedding_model
+    )["data"][0]["embedding"]
     search_results = vectordb_client.search(collection_name="rca",
                                             query_vector=embedding,
                                             limit=search_top_n)
@@ -192,7 +200,7 @@ async def main(message: str):
                 if s_result["text"] != "":
                     constructed_prompt += s_result["text"] + "\n"
             constructed_prompt += "Question: " + message
-    except (openai.error.OpenAIError, ValueError, KeyError) as e:
+    except (openai.OpenAIError, ValueError, KeyError) as e:
         search_results = ["Search error"]
         cl.logger.debug(f"Search error: {e}")
 
@@ -218,13 +226,15 @@ async def main(message: str):
         ]
     msg = cl.Message(content="", actions=actions)
     if model_settings["stream"]:
-        async for stream_resp in await openai.ChatCompletion.acreate(
-            messages=message_history, **model_settings
+        async for stream_resp in aclient.chat.completions.create(
+            messages=message_history,
+            stream=True,
+            **model_settings
         ):
             token = stream_resp.choices[0]["delta"].get("content", "")
             await msg.stream_token(token)
     else:
-        content = await openai.ChatCompletion.acreate(
+        content = await aclient.chat.completions.create(
             messages=message_history, **model_settings)
         msg.content = content.choices[0]["message"].get("content", "")
     message_history.append({"role": "assistant", "content": msg.content})
