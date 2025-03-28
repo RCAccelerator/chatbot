@@ -9,6 +9,8 @@ import os
 try:
     from openai import AsyncOpenAI, OpenAIError
     import chainlit as cl
+    import bcrypt
+    from chainlit.context import ChainlitContextException
     from chainlit.input_widget import Select, Switch, Slider
     from pymongo import MongoClient
     from pymongo.errors import ConnectionFailure, PyMongoError
@@ -16,7 +18,6 @@ try:
     from qdrant_client.http.exceptions import ApiException
 except ImportError as import_exception:
     print(f"Error importing required libraries: {import_exception}")
-    print("openai chainlit pymongo qdrant-client")
     raise
 
 SEARCH_INSTRUCTION = "Represent this sentence " \
@@ -134,6 +135,15 @@ async def init_chat():
     elements.
     Sets up model selection, parameters, and initial message history.
     """
+
+    # Get the username if available
+    username = cl.user_session.get("username", "User")
+    # Send a welcome message to the authenticated user
+    await cl.Message(
+        content=f"Welcome, {username}! How can I help with CI " +
+        "troubleshooting today?"
+    ).send()
+
     settings = await cl.ChatSettings(
         [
             Select(
@@ -305,3 +315,56 @@ def save_conversation_data(user_message, response_msg, model_settings,
     except PyMongoError as e:
         cl.logger.error("Failed to save conversation data: %s", str(e))
         # Continue execution without crashing
+
+
+def verify_credentials(username: str, password: str) -> bool:
+    """
+    Verify user credentials against the database using bcrypt.
+    Args:
+        username: The username to verify
+        password: The password to verify
+    Returns:
+        bool: True if credentials are valid, False otherwise
+    """
+    # Look up the user in the database
+    user_collection = DB_CLIENT[default_db_name]["users"]
+    user = user_collection.find_one({"username": username})
+
+    if user and user.get("password"):
+        # Verify the password using bcrypt
+        stored_hash = user.get("password")
+        # Convert password to bytes if it's not already
+        password_bytes = (password.encode('utf-8')
+                          if isinstance(password, str)
+                          else password)
+        # Check if the password matches the stored hash
+        return bcrypt.checkpw(password_bytes, stored_hash)
+
+    return False
+
+
+@cl.password_auth_callback
+async def auth_callback(username: str, password: str) -> bool:
+    """
+    Authenticate users with username and password.
+    Args:
+        username: The username provided by the user
+        password: The password provided by the user
+    Returns:
+        bool: True if authentication is successful, False otherwise
+    """
+    cl.logger.info("Authentication attempt for user: %s", username)
+
+    is_valid = verify_credentials(username, password)
+
+    if is_valid:
+        try:
+            cl.user_session.set("username", username)
+            cl.logger.info("Authentication successful for user: %s", username)
+        except ChainlitContextException as context_exception:
+            cl.logger.warning("Failed to set username in session: %s",
+                              str(context_exception))
+    else:
+        cl.logger.warning("Authentication failed for user: %s", username)
+
+    return is_valid
