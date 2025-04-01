@@ -68,3 +68,23 @@ async def auth_callback(username: str, password: str):
     Returns True if authentication is successful, False otherwise.
     """
     return authentification.authenticate(username, password)
+
+
+@cl.on_chat_resume
+async def on_chat_resume():
+    """
+    Handle chat resume event.
+    This function can be used to restore the chat state or perform any
+    necessary actions when the chat is resumed.
+    """
+    pass  # pylint: disable=unnecessary-pass
+
+
+@cl.on_chat_end
+async def end_chat():
+    """
+    Handle chat end event.
+    This function can be used to perform cleanup or logging when the chat
+    ends.
+    """
+    await cl.Message(content="Thank you for using the chatbot!").send()
