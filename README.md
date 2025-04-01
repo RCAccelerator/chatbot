@@ -8,19 +8,15 @@ RCAccelerator is an interactive AI assistant designed to assist engineering team
 
 ## Running the App
 
-* Install dependencies (which also takes care of installing PDM if needed):
-
-```bash
-make install-deps
-```
-
 * Create a `.env` file or export the necessary environment variables.
 
 * Start the Chainlit app:
 
 ```bash
-pdm run chainlit run src/app.py
+podman run --rm --env-file .env -it -p 8000:8000 quay.io/rcaccelerator/chatbot:main
 ```
+
+* The chatbot is available at `http://localhost:8000`.
 
 ## Environment Variables
 
