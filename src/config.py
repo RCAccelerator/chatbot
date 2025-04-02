@@ -33,10 +33,14 @@ class Config:
     def from_env(cls) -> 'Config':
         """Create Config instance from environment variables."""
         return cls(
-            generation_llm_api_url=os.environ.get("GENERATION_LLM_API_URL"),
-            generation_llm_api_key=os.environ.get("GENERATION_LLM_API_KEY"),
-            embeddings_llm_api_url=os.environ.get("EMBEDDINGS_LLM_API_URL"),
-            embeddings_llm_api_key=os.environ.get("EMBEDDINGS_LLM_API_KEY"),
+            generation_llm_api_url=os.environ.get(
+                "GENERATION_LLM_API_URL", ""),
+            generation_llm_api_key=os.environ.get(
+                "GENERATION_LLM_API_KEY", ""),
+            embeddings_llm_api_url=os.environ.get(
+                "EMBEDDINGS_LLM_API_URL", ""),
+            embeddings_llm_api_key=os.environ.get(
+                "EMBEDDINGS_LLM_API_KEY", ""),
             generative_model=os.environ.get(
                 "GENERATION_LLM_MODEL_NAME",
                 'mistralai/Mistral-7B-Instruct-v0.3'),
@@ -49,9 +53,9 @@ class Config:
             default_top_p=float(
                 os.environ.get("DEFAULT_MODEL_TOP_P", 1)),
             default_n=int(os.environ.get("DEFAULT_MODEL_N", 1)),
-            auth_database_url=os.environ.get("AUTH_DATABASE_URL"),
-            vectordb_url=os.environ.get("VECTORDB_URL"),
-            vectordb_api_key=os.environ.get("VECTORDB_API_KEY"),
+            auth_database_url=os.environ.get("AUTH_DATABASE_URL", ""),
+            vectordb_url=os.environ.get("VECTORDB_URL", ""),
+            vectordb_api_key=os.environ.get("VECTORDB_API_KEY", ""),
             vectordb_port=int(os.environ.get("VECTORDB_PORT", 6333)),
             vectordb_collection_name=os.environ.get(
                 "VECTORDB_COLLECTION_NAME", 'rca-knowledge-base'),
