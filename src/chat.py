@@ -89,12 +89,13 @@ def update_msg_count():
     cl.user_session.set("counter", counter)
 
 
-async def handle_user_message(message: cl.Message):
+async def handle_user_message(message: cl.Message, debug_mode=False):
     """
     Main handler for user messages.
 
     Args:
         message: The user's input message
+        debug_mode: Whether to show debug information
     """
     settings = cl.user_session.get("settings")
     model_settings = {
@@ -105,6 +106,13 @@ async def handle_user_message(message: cl.Message):
     }
 
     resp = cl.Message(content="")
+
+    # Initialize debug_content with all settings
+    debug_content = "**Current Settings:**\n"
+    if settings:
+        for key, value in settings.items():
+            debug_content += f"- {key}: {value}\n"
+    debug_content += "\n"
 
     if message.elements and message.elements[0].path:
         with open(message.elements[0].path, 'r', encoding='utf-8') as file:
@@ -142,6 +150,20 @@ async def handle_user_message(message: cl.Message):
         st = get_similarity_threshold()
         search_results = await perform_search(user_content=message.content,
                                               similarity_threshold=st)
+
+        # Display vector DB debug information if debug mode is enabled
+        if debug_mode:
+            if search_results:
+                debug_content += "**Vector DB Search Results:**\n"
+                for i, result in enumerate(search_results[:10], 1):
+                    debug_content += (
+                        f"**Result {i}**\n"
+                        f"- Score: {result.get('score', 0)}\n"
+                        f"- URL: {result.get('url', 'N/A')}\n"
+                        f"- Preview: {result.get('text', 'N/A')[:500]}...\n\n"
+                    )
+            await cl.Message(content=debug_content).send()
+
         message.content += build_prompt(search_results)
 
     # Process user message and get AI response
@@ -162,6 +184,8 @@ def get_similarity_threshold() -> float:
         Similarity threshold value
     """
     settings = cl.user_session.get("settings")
+    if not settings:
+        return config.search_similarity_threshold
     # Get threshold from settings or fall back to config default
     threshold = settings.get("search_similarity_threshold",
                              config.search_similarity_threshold)

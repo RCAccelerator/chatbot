@@ -60,7 +60,8 @@ async def init_chat():
                 max=1,
                 step=0.05,
             ),
-            Switch(id="stream", label="Stream a response", initial=True)
+            Switch(id="stream", label="Stream a response", initial=True),
+            Switch(id="debug_mode", label="Debug Mode", initial=False)
         ]
     ).send()
     cl.user_session.set("settings", settings)
@@ -69,7 +70,10 @@ async def init_chat():
 @cl.on_message
 async def main(message: cl.Message):
     """Main message handler that processes user input."""
-    await handle_user_message(message)
+    settings = cl.user_session.get("settings")
+
+    await handle_user_message(message,
+                              debug_mode=settings.get("debug_mode", False))
 
 
 @cl.password_auth_callback
