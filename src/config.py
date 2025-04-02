@@ -3,6 +3,9 @@
 from dataclasses import dataclass
 import os
 
+# Constants for values we don't want to expose to the user
+SUGGESTED_MINIMUM_SIMILARITY_THRESHOLD = 0.3
+
 
 # pylint: disable=too-many-instance-attributes,too-few-public-methods
 @dataclass(frozen=True)

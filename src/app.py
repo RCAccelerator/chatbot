@@ -5,7 +5,7 @@ with RAG capabilities.
 import chainlit as cl
 from chainlit.input_widget import Select, Switch, Slider
 
-from config import config
+from config import config, SUGGESTED_MINIMUM_SIMILARITY_THRESHOLD
 from chat import handle_user_message
 from auth import authentification
 
@@ -49,10 +49,21 @@ async def init_chat():
                 max=1024,
                 step=1,
             ),
+            Slider(
+                id="search_similarity_threshold",
+                label="Search Similarity Threshold",
+                initial=config.search_similarity_threshold,
+                min=min(
+                    config.search_similarity_threshold,
+                    SUGGESTED_MINIMUM_SIMILARITY_THRESHOLD
+                ),
+                max=1,
+                step=0.05,
+            ),
             Switch(id="stream", label="Stream a response", initial=True)
         ]
     ).send()
-    cl.user_session.set("model_settings", settings)
+    cl.user_session.set("settings", settings)
 
 
 @cl.on_message

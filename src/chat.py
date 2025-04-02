@@ -3,23 +3,28 @@ import chainlit as cl
 
 from generation import process_message_and_get_response
 from embeddings import search_similar_content
-from config import config
+from config import config, SUGGESTED_MINIMUM_SIMILARITY_THRESHOLD
 
 
-async def perform_search(user_content: str) -> list[dict]:
+async def perform_search(user_content: str,
+                         similarity_threshold: float) -> list[dict]:
     """
     Perform search inside of the vector DB to find information that might
     relate to the problem described by the user.
 
     Args:
         user_content: User's input query
+        similarity_threshold: Minimum similarity score threshold
 
     Returns:
         List of unique search results sorted by relevance
     """
 
     # Search based on user query first
-    search_results_query = await search_similar_content(user_content)
+    search_results_query = await search_similar_content(
+        search_string=user_content,
+        similarity_threshold=similarity_threshold
+    )
     search_results = []
     search_results.extend(search_results_query)
 
@@ -90,7 +95,13 @@ async def handle_user_message(message: cl.Message):
     Args:
         message: The user's input message
     """
-    model_settings = cl.user_session.get("model_settings")
+    settings = cl.user_session.get("settings")
+    model_settings = {
+        "model": settings["model"],
+        "temperature": settings["temperature"],
+        "max_tokens": settings["max_tokens"],
+        "stream": settings["stream"]
+    }
 
     resp = cl.Message(content="")
 
@@ -99,7 +110,9 @@ async def handle_user_message(message: cl.Message):
             message.content += file.read()
 
     if message.content:
-        search_results = await perform_search(message.content)
+        st = get_similarity_threshold()
+        search_results = await perform_search(user_content=message.content,
+                                              similarity_threshold=st)
         message.content += build_prompt(search_results)
 
     # Process user message and get AI response
@@ -110,3 +123,27 @@ async def handle_user_message(message: cl.Message):
 
     update_msg_count()
     await resp.send()
+
+
+def get_similarity_threshold() -> float:
+    """
+    Get the similarity threshold from user settings or default config.
+
+    Returns:
+        Similarity threshold value
+    """
+    settings = cl.user_session.get("settings")
+    # Get threshold from settings or fall back to config default
+    threshold = settings.get("search_similarity_threshold",
+                             config.search_similarity_threshold)
+
+    # Ensure threshold is within valid range
+    if threshold < SUGGESTED_MINIMUM_SIMILARITY_THRESHOLD:
+        # If default config is also below minimum, use it anyway
+        if (config.search_similarity_threshold <
+                SUGGESTED_MINIMUM_SIMILARITY_THRESHOLD):
+            return config.search_similarity_threshold
+        return SUGGESTED_MINIMUM_SIMILARITY_THRESHOLD
+
+    # If threshold is above 1, cap it at 1
+    return min(threshold, 1.0)
