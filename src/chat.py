@@ -84,7 +84,7 @@ def append_searched_urls(search_results, resp):
 
 def update_msg_count():
     """Update the number of messages in the conversation."""
-    counter = cl.user_session.get("counter")
+    counter = cl.user_session.get("counter", 0)
     counter += 1
     cl.user_session.set("counter", counter)
 
