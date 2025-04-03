@@ -34,11 +34,11 @@ class Config:
         """Create Config instance from environment variables."""
         return cls(
             generation_llm_api_url=os.environ.get(
-                "GENERATION_LLM_API_URL", ""),
+                "GENERATION_LLM_API_URL", "http://localhost:8000/v1"),
             generation_llm_api_key=os.environ.get(
                 "GENERATION_LLM_API_KEY", ""),
             embeddings_llm_api_url=os.environ.get(
-                "EMBEDDINGS_LLM_API_URL", ""),
+                "EMBEDDINGS_LLM_API_URL", "http://localhost:8000/v1"),
             embeddings_llm_api_key=os.environ.get(
                 "EMBEDDINGS_LLM_API_KEY", ""),
             generative_model=os.environ.get(
@@ -53,8 +53,11 @@ class Config:
             default_top_p=float(
                 os.environ.get("DEFAULT_MODEL_TOP_P", 1)),
             default_n=int(os.environ.get("DEFAULT_MODEL_N", 1)),
-            auth_database_url=os.environ.get("AUTH_DATABASE_URL", ""),
-            vectordb_url=os.environ.get("VECTORDB_URL", ""),
+            auth_database_url=os.environ.get(
+                "AUTH_DATABASE_URL",
+                "postgresql://<username>:<password>@localhost:5432/users"),
+            vectordb_url=os.environ.get(
+                "VECTORDB_URL", "http://localhost:6333"),
             vectordb_api_key=os.environ.get("VECTORDB_API_KEY", ""),
             vectordb_port=int(os.environ.get("VECTORDB_PORT", 6333)),
             vectordb_collection_name=os.environ.get(
