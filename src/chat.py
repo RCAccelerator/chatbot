@@ -94,6 +94,10 @@ async def handle_user_message(message: cl.Message):
 
     resp = cl.Message(content="")
 
+    if message.elements and message.elements[0].path:
+        with open(message.elements[0].path, 'r', encoding='utf-8') as file:
+            message.content += file.read()
+
     if message.content:
         search_results = await perform_search(message.content)
         message.content += build_prompt(search_results)
