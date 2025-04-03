@@ -30,6 +30,7 @@ async def init_chat():
             Select(
                 id="model",
                 label="Chat - Model",
+                initial=config.generative_model,
                 values=[config.generative_model],
                 initial_index=0,
             ),
