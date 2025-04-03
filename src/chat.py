@@ -1,8 +1,9 @@
 """Handler for chat messages and responses."""
 import chainlit as cl
+import httpx
 
 from generation import process_message_and_get_response
-from embeddings import search_similar_content
+from embeddings import search_similar_content, get_num_tokens
 from config import config, SUGGESTED_MINIMUM_SIMILARITY_THRESHOLD
 
 
@@ -108,6 +109,34 @@ async def handle_user_message(message: cl.Message):
     if message.elements and message.elements[0].path:
         with open(message.elements[0].path, 'r', encoding='utf-8') as file:
             message.content += file.read()
+
+    try:
+        num_required_tokens = await get_num_tokens(message.content)
+    except httpx.HTTPStatusError as e:
+        cl.logger.error(e)
+        resp.content = "We've encountered an issue. Please try again later ..."
+        await resp.send()
+        return
+
+    if num_required_tokens > config.embeddings_llm_max_context:
+        # On average, a single token corresponds to approximately 4 characters.
+        # Because logs often require more tokens to process, we estimate 3
+        # characters per token.
+        approx_max_chars = round(
+            config.embeddings_llm_max_context * 3, -2)
+
+        resp.content = (
+            "⚠️ **Your input is too lengthy!**\n We can process inputs of up "
+            f"to approximately {approx_max_chars} characters. The exact limit "
+            "may vary depending on the input type. For instance, plain text "
+            "inputs can be longer compared to logs or structured data "
+            "containing special characters (e.g., `[`, `]`, `:`, etc.).\n\n"
+            "To proceed, please:\n"
+            "  - Focus on including only the most relevant details, and\n"
+            "  - Shorten your input if possible."
+        )
+        await resp.send()
+        return
 
     if message.content:
         st = get_similarity_threshold()

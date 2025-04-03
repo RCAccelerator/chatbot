@@ -1,5 +1,8 @@
 """Embedding generation and vector search functionality."""
+from urllib.parse import urlparse
+
 import chainlit as cl
+import httpx
 from openai import AsyncOpenAI, OpenAIError
 from qdrant_client.http.exceptions import ApiException
 
@@ -66,3 +69,48 @@ async def search_similar_content(
     except (ApiException, OpenAIError, ValueError, KeyError) as e:
         cl.logger.error("Error in search_similar_content: %s", str(e))
         return []
+
+
+async def get_num_tokens(
+        prompt: str, model=config.embeddings_model,
+        llm_url=config.embeddings_llm_api_url,
+        api_key=config.embeddings_llm_api_key) -> int:
+    """Retrieve the number of tokens required to process the prompt.
+
+    This function calls the /tokenize API endpoint to get the number of
+    tokens the input will be transformed into when processed by the specified
+    model (default is the embedding model).
+
+    Args:
+        prompt: The input text for which to calculate the token count.
+        model: The model to use for tokenization.
+        llm_url: The URL of the model.
+        api_key: The API key used for authentication.
+
+    Raises:
+        HTTPStatusError: If the response from the /tokenize API endpoint is
+            not 200 status code.
+    """
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api_key}"
+    }
+
+    data = {
+        "model": model,
+        "prompt": prompt,
+    }
+
+    llm_url_parse = urlparse(llm_url)
+    tokenize_url = f"{llm_url_parse.scheme}://{llm_url_parse.netloc}/tokenize"
+
+    async with httpx.AsyncClient() as client:
+        response = await client.post(tokenize_url, headers=headers, json=data)
+
+        if response.status_code == 200:
+            response_data = response.json()
+            return response_data["count"]
+
+        response.raise_for_status()
+
+    return 0

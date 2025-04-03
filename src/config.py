@@ -15,6 +15,7 @@ class Config:
     generation_llm_api_key: str
     embeddings_llm_api_url: str
     embeddings_llm_api_key: str
+    embeddings_llm_max_context: int
     generative_model: str
     embeddings_model: str
     default_temperature: float
@@ -45,6 +46,10 @@ class Config:
                 "EMBEDDINGS_LLM_API_URL", "http://localhost:8000/v1"),
             embeddings_llm_api_key=os.environ.get(
                 "EMBEDDINGS_LLM_API_KEY", ""),
+            embeddings_llm_max_context=int(os.environ.get(
+                "EMBEDDINGS_LLM_MAX_CONTEXT",
+                8194,
+            )),
             generative_model=os.environ.get(
                 "GENERATION_LLM_MODEL_NAME",
                 'mistralai/Mistral-7B-Instruct-v0.3'),
