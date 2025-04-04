@@ -138,13 +138,6 @@ async def handle_user_message(message: cl.Message, debug_mode=False):
         debug_mode: Whether to show debug information
     """
     settings = cl.user_session.get("settings")
-    model_settings = {
-        "model": settings["model"],
-        "temperature": settings["temperature"],
-        "max_tokens": settings["max_tokens"],
-        "stream": settings["stream"]
-    }
-
     resp = cl.Message(content="")
 
     # Initialize debug_content with all settings
@@ -154,9 +147,15 @@ async def handle_user_message(message: cl.Message, debug_mode=False):
             debug_content += f"- {key}: {value}\n"
     debug_content += "\n"
 
-    if message.elements and message.elements[0].path:
-        with open(message.elements[0].path, 'r', encoding='utf-8') as file:
-            message.content += file.read()
+    try:
+        if message.elements and message.elements[0].path:
+            with open(message.elements[0].path, 'r', encoding='utf-8') as file:
+                message.content += file.read()
+    except OSError as e:
+        cl.logger.error(e)
+        resp.content = "An error occurred while processing your file."
+        await resp.send()
+        return
 
     # Check message length
     is_valid_length, error_message = await check_message_length(
@@ -187,7 +186,7 @@ async def handle_user_message(message: cl.Message, debug_mode=False):
         message.content += build_prompt(search_results)
 
     # Process user message and get AI response
-    await process_message_and_get_response(message, resp, model_settings)
+    await process_message_and_get_response(message, resp, settings)
 
     # Extend response with searched jira urls
     append_searched_urls(search_results, resp)
