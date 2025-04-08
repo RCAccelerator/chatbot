@@ -162,17 +162,15 @@ async def print_debug_content(
     await cl.Message(content=debug_content).send()
 
 
-async def handle_user_message(message: cl.Message, settings: dict) -> None:
-    """Handle the user's message and get the response from the LLM
-
-    This function combines the system prompt, the user's input, and relevant
-    context retrieved from the vector database to construct the full prompt.
-    This full prompt is then sent to the LLM for processing.
+async def handle_user_message(message: cl.Message, debug_mode=False):
+    """
+    Main handler for user messages.
 
     Args:
-        message: The user's input message.
-        settings: Configuration settings provided through the UI.
+        message: The user's input message
+        debug_mode: Whether to show debug information
     """
+    settings = cl.user_session.get("settings")
     resp = cl.Message(content="")
 
     try:
@@ -197,7 +195,7 @@ async def handle_user_message(message: cl.Message, settings: dict) -> None:
         st = get_similarity_threshold()
         search_results = await perform_search(user_content=message.content,
                                               similarity_threshold=st)
-        if settings["debug_mode"]:
+        if debug_mode:
             await print_debug_content(settings, search_results)
 
         message.content += build_prompt(search_results)

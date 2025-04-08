@@ -79,17 +79,10 @@ async def setup_chat_settings():
 @cl.on_message
 async def main(message: cl.Message):
     """Main message handler that processes user input."""
-    settings = cl.user_session.get("settings", {})
-    if not settings:
-        cl.logger.warning(
-            "User settings not found. Using default configuration.")
-        settings["model"] = config.generative_model
-        settings["temperature"] = config.default_temperature
-        settings["max_tokens"] = config.default_max_tokens
-        settings["stream"] = True
-        settings["debug_mode"] = False
+    settings = cl.user_session.get("settings")
 
-    await handle_user_message(message, settings)
+    await handle_user_message(message,
+                              debug_mode=settings.get("debug_mode", False))
 
 
 @cl.password_auth_callback
