@@ -25,6 +25,15 @@ async def init_chat():
     ).send()
     cl.user_session.set("counter", 0)
 
+    # Call the function to set up chat settings
+    await setup_chat_settings()
+
+
+async def setup_chat_settings():
+    """
+    Set up the chat settings interface with model selection,
+    temperature, token limits, and other configuration options.
+    """
     settings = await cl.ChatSettings(
         [
             Select(
@@ -99,7 +108,7 @@ async def on_chat_resume():
     This function can be used to restore the chat state or perform any
     necessary actions when the chat is resumed.
     """
-    pass  # pylint: disable=unnecessary-pass
+    await setup_chat_settings()
 
 
 @cl.on_chat_end
@@ -109,4 +118,4 @@ async def end_chat():
     This function can be used to perform cleanup or logging when the chat
     ends.
     """
-    await cl.Message(content="Thank you for using the chatbot!").send()
+    pass  # pylint: disable=unnecessary-pass
