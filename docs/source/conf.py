@@ -29,7 +29,7 @@ extensions = ['myst_parser',
               'sphinx.ext.todo',
               'sphinx.ext.viewcode',
               'sphinxemoji.sphinxemoji',
-              'reno.sphinxext', 
+              'reno.sphinxext',
               'sphinxcontrib.spelling']
 
 # Add any paths that contain templates here, relative to this directory.

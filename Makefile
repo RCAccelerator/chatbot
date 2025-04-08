@@ -1,4 +1,4 @@
-.PHONY: help install-deps tox
+.PHONY: help install-deps tox docs
 
 install-pdm: ## Install required utilities/tools
 	@command -v pdm > /dev/null || { echo >&2 "pdm is not installed. Installing..."; pip install --upgrade pip pdm; }
@@ -17,6 +17,10 @@ pdm-lock-check: ## Check that the pdm.lock file is in a good shape
 
 tox: ## Run tox
 	tox
+
+docs: ## Generate docs
+	cd docs; ./prepare_env.sh && ./build.sh
+	@echo "📄 Open in browser: file://$(abspath docs/source/_build/html/index.html)"
 
 help: ## Show this help screen
 	@echo 'Usage: make <OPTIONS> ... <TARGETS>'

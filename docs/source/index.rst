@@ -6,7 +6,7 @@ RCAccelerator chatbot User Manual
 
 .. toctree::
    :maxdepth: 1
-   :caption: Introduction 
+   :caption: Introduction
    :glob:
 
    Introduction/*
