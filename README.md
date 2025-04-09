@@ -1,51 +1,13 @@
 # RCAccelerator
 
-A Chainlit-based chatbot with RAG (Retrieval-Augmented Generation) capabilities for accelerating Root Cause Analysis (RCA) in Continuous Integration (CI) environments.
+A conversational AI assistant for accelerating Root Cause Analysis (RCA) in Continuous Integration (CI) environments.
 
-## Overview
+## Documentation
 
-RCAccelerator is an interactive AI assistant designed to assist engineering teams in identifying, analyzing, and resolving CI failures more efficiently. Built on top of [Chainlit](https://www.chainlit.io/), it leverages LLMs and vector search to combine conversational intelligence with deep contextual recall of past incidents, bugs, and system knowledge.
+For complete documentation including setup instructions, usage guides, and more, please visit:
 
-## Running the App
+**[https://rcaccelerator.github.io/chatbot/](https://rcaccelerator.github.io/chatbot/)**
 
-* Create a `.env` file or export the necessary environment variables.
+## Quick Start
 
-* Start the Chainlit app:
-
-```bash
-podman run --rm --env-file .env -it -p 8000:8000 quay.io/rcaccelerator/chatbot:main
-```
-
-* The chatbot is available at `http://localhost:8000`.
-
-## Environment Variables
-
-The application can be configured using the following environment variables:
-
-### LLM Settings
-
-* `GENERATION_LLM_API_URL`: URL for the generative LLM API
-* `GENERATION_LLM_API_KEY`: API key for the generative LLM
-* `GENERATION_LLM_MODEL_NAME`: Name of the generative model to use (default: 'mistralai/Mistral-7B-Instruct-v0.3')
-* `EMBEDDINGS_LLM_API_URL`: URL for the embeddings LLM API
-* `EMBEDDINGS_LLM_API_KEY`: API key for the embeddings LLM
-* `EMBEDDINGS_LLM_MODEL_NAME`: Name of the embeddings model to use (default: 'BAAI/bge-m3')
-
-### Model Parameters
-
-* `DEFAULT_MODEL_TEMPERATURE`: Temperature setting for generation (default: 0.7)
-* `DEFAULT_MODEL_MAX_TOKENS`: Maximum tokens for generation (default: 1024)
-* `DEFAULT_MODEL_TOP_P`: Top-p sampling parameter (default: 1)
-* `DEFAULT_MODEL_N`: Number of completions to generate (default: 1)
-
-### Chatbot Database Settings
-
-* `DATABASE_URL`: PostgreSQL connection URL for the chatbot sessions
-* `AUTH_DATABASE_URL`: PostgreSQL connection URL for storing users and passwords
-
-### Vector Database Settings
-
-* `VECTORDB_URL`: URL for the vector database
-* `VECTORDB_API_KEY`: API key for the vector database
-* `VECTORDB_PORT`: Port for the vector database (default: 6333)
-* `VECTORDB_COLLECTION_NAME`: Collection name in the vector database (default: 'rca-knowledge-base')
+See the [documentation site](https://rcaccelerator.github.io/chatbot/) for detailed instructions on deploying and using RCAccelerator.

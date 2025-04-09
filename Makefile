@@ -1,4 +1,4 @@
-.PHONY: help install-deps install-pre-commit pre-commit-check install-dev-deps tox
+.PHONY: help install-deps install-pre-commit pre-commit-check install-dev-deps tox docs
 
 install-pdm: ## Install required utilities/tools
 	@command -v pdm > /dev/null || { echo >&2 "pdm is not installed. Installing..."; pip install --upgrade pip pdm; }
@@ -23,6 +23,11 @@ pre-commit-check: install-pre-commit ## Run pre-commit check on all files
 
 tox: ## Run tox
 	tox
+
+lint: tox pre-commit-check ## Run tox and pre-commit checks
+
+docs: ## Generate documentation by running docs/prepare_env.sh and docs/build.sh
+	cd docs; ./prepare_env.sh && ./build.sh
 
 help: ## Show this help screen
 	@echo 'Usage: make <OPTIONS> ... <TARGETS>'
