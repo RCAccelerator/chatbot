@@ -1,10 +1,9 @@
 """Text generation with large language models."""
-from typing import TypedDict
 
 import chainlit as cl
 from openai import AsyncOpenAI, OpenAIError
-from openai.types.chat import ChatCompletionMessageParam
 
+from settings import HistorySettings, ModelSettings
 from config import config
 
 # Initialize generative LLM client
@@ -15,20 +14,6 @@ gen_llm = AsyncOpenAI(
 )
 
 
-class ModelSettings(TypedDict):
-    """
-    A dictionary type that defines the settings for a model.
-
-    Attributes:
-        model: The name of the model.
-        temperature: The temperature to use for generation.
-        max_tokens: The maximum number of tokens in the output.
-    """
-    model: str
-    temperature: float
-    max_tokens: int
-
-
 def _handle_context_size_limit(err: OpenAIError) -> str:
     if 'reduce the length of the messages or completion' in err.message:
         cl.user_session.set('message_history', '')
@@ -37,7 +22,7 @@ def _handle_context_size_limit(err: OpenAIError) -> str:
     return str(err)
 
 
-async def get_response(message_history: list[ChatCompletionMessageParam],
+async def get_response(history_settings: HistorySettings,
                        user_message: cl.Message, response_msg: cl.Message,
                        model_settings: ModelSettings,
                        stream_response: bool = True) -> bool:
@@ -56,6 +41,7 @@ async def get_response(message_history: list[ChatCompletionMessageParam],
             get the process in a single chunk.
     """
     is_error = True
+    message_history = history_settings.get('message_history', [])
     if not message_history:
         message_history = [
             {"role": "system", "content": config.system_prompt}]
@@ -78,7 +64,8 @@ async def get_response(message_history: list[ChatCompletionMessageParam],
             response_msg.content = response.choices[0].message.content or ""
         message_history.append({"role": "assistant",
                                 "content": response_msg.content})
-        cl.user_session.set('message_history', message_history)
+        if history_settings.get('keep_history', True):
+            cl.user_session.set('message_history', message_history)
         is_error = False
     except OpenAIError as e:
         err_msg = _handle_context_size_limit(e)

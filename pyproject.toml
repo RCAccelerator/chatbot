@@ -12,6 +12,8 @@ dependencies = [
     "sqlalchemy>=2.0.40",
     "psycopg2-binary>=2.9.10",
     "httpx>=0.28.1",
+    "fastapi>=0.115.8",
+    "uvicorn>=0.34.0",
 ]
 requires-python = "==3.12.*"
 

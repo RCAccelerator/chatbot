@@ -71,7 +71,8 @@ async def setup_chat_settings():
                 step=0.05,
             ),
             Switch(id="stream", label="Stream a response", initial=True),
-            Switch(id="debug_mode", label="Debug Mode", initial=False)
+            Switch(id="debug_mode", label="Debug Mode", initial=False),
+            Switch(id="keep_history", label="Keep message history in thread", initial=True)
         ]
     ).send()
     cl.user_session.set("settings", settings)

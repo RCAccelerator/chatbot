@@ -1,12 +1,26 @@
 """Handler for chat messages and responses."""
+from dataclasses import dataclass
 import chainlit as cl
 import httpx
 
 from openai.types.chat import ChatCompletionMessageParam
-from generation import get_response, ModelSettings
+from generation import get_response
 from embeddings import search_similar_content, get_num_tokens
+from settings import ModelSettings
 from config import config
 from constants import SUGGESTED_MINIMUM_SIMILARITY_THRESHOLD
+
+
+# Create mock message and response objects
+@dataclass
+class MockMessage:
+    """
+    A dictionary type that defines a mock message.
+
+    Attributes:
+        content: The content of the message.
+    """
+    content: str
 
 
 async def perform_search(user_content: str,
@@ -226,18 +240,21 @@ async def handle_user_message(message: cl.Message, debug_mode=False):
                                       search_results)
 
         message.content += build_prompt(search_results)
-
-    model_settings: ModelSettings = {
-        "model": settings["model"],
-        "max_tokens": settings["max_tokens"],
-        "temperature": settings["temperature"],
-    }
-
-    # Process user message and get AI response
-    is_error = await get_response(
-        message_history, message, resp, model_settings,
-        stream_response=settings.get("stream", True)
-    )
+        # Process user message and get AI response
+        is_error = await get_response(
+            {
+                "message_history": message_history,
+                "keep_history": settings.get("keep_history", True)
+            },
+            message,
+            resp,
+            {
+                "model": settings["model"],
+                "max_tokens": settings["max_tokens"],
+                "temperature": settings["temperature"]
+            },
+            stream_response=settings.get("stream", True)
+        )
 
     if not is_error:
         # Extend response with searched jira urls
@@ -245,6 +262,50 @@ async def handle_user_message(message: cl.Message, debug_mode=False):
 
     update_msg_count()
     await resp.send()
+
+
+async def handle_user_message_api(message_content: str) -> str:
+    """
+    API handler for user messages without Chainlit context.
+
+    Args:
+        message_content: The user's input message as a string
+
+    Returns:
+        The AI generated response as a string
+    """
+    # Check message length
+    is_valid_length, error_message = await check_message_length(message_content)
+    if not is_valid_length:
+        return error_message
+
+    # Get default settings from config
+    model_settings: ModelSettings = {
+        "model": config.generative_model,
+        "max_tokens": config.default_max_tokens,
+        "temperature": config.default_temperature,
+    }
+
+    # Perform search and build prompt
+    search_results = await perform_search(
+        user_content=message_content,
+        similarity_threshold=config.search_similarity_threshold
+    )
+
+    message = MockMessage(content=message_content + build_prompt(search_results))
+    response = MockMessage(content="")
+
+     # Process user message and get AI response
+    is_error = await get_response(
+        {"keep_history": False}, message, response, model_settings,
+        stream_response=False,
+    )
+
+    if not is_error:
+        # Extend response with searched jira urls
+        append_searched_urls(search_results, response)
+
+    return response.content
 
 
 def get_similarity_threshold() -> float:
