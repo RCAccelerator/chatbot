@@ -46,11 +46,13 @@ Each piece of information follows this structure:
 kind: {{ kind value }}
 text: {{ text value }}
 score: {{ score value }}
+components: {{ components }}
 ---
 
 {{ kind value }} = describes the Jira ticket section (e.g., comment, summary, description, ...) from which the piece of information was taken.
 {{ text value }} = describes the actual content taken from the Jira ticket
 {{ score value }} = is the similarity score calculated for the user input
+{{ components }} = list of software components related to contents of the Jira ticket
 
 ## Additional information
 - When NO value could be obtained for <kind value>, <text value>, or <score value>, expect the "NO VALUE" string.
@@ -120,3 +122,15 @@ WELCOME_MESSAGE = "I am your CI assistant. I will help you with your RCA."
 CONTEXT_HEADER = "Here is the text with the information from the Jira tickets:\n"  # noqa: E501
 
 SUGGESTED_MINIMUM_SIMILARITY_THRESHOLD = 0.3
+
+SEARCH_RESULTS_TEMPLATE = """---
+
+kind: {kind}
+text: {text}
+score: {score}
+components: {components}
+
+---
+"""
+
+NO_RESULTS_FOUND = "NO relevant Jira tickets found."

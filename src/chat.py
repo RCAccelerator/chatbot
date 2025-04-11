@@ -6,7 +6,11 @@ from openai.types.chat import ChatCompletionMessageParam
 from generation import get_response, ModelSettings
 from embeddings import search_similar_content, get_num_tokens
 from config import config
-from constants import SUGGESTED_MINIMUM_SIMILARITY_THRESHOLD
+from constants import (
+    SUGGESTED_MINIMUM_SIMILARITY_THRESHOLD,
+    SEARCH_RESULTS_TEMPLATE,
+    NO_RESULTS_FOUND
+    )
 
 
 async def perform_search(user_content: str,
@@ -54,18 +58,23 @@ def build_prompt(search_results: list[dict]) -> str:
         Formatted string with search results
     """
     if not search_results:
-        return config.prompt_header + "NO relevant Jira tickets found."
+        return config.prompt_header + NO_RESULTS_FOUND
 
-    prompt = [
-        f"---\n"
-        f"kind: {res.get('kind', "NO VALUE")}\n"
-        f"text: {res.get('text', "NO VALUE")}\n"
-        f"score: {res.get('score', "NO VALUE")}\n"
-        f"---\n"
-        for res in search_results
-    ]
+    formatted_results = []
 
-    return config.prompt_header + "\n" + "\n".join(prompt)
+    for res in search_results:
+        components = "NO VALUE"
+        if res.get('components', []):
+            components = ",".join([str(e) for e in res.get('components')])
+
+        formatted_results.append(SEARCH_RESULTS_TEMPLATE.format(
+            kind=res.get('kind', "NO VALUE"),
+            text=res.get('text', "NO VALUE"),
+            score=res.get('score', "NO VALUE"),
+            components=components
+        ))
+
+    return config.prompt_header + "\n" + "\n".join(formatted_results)
 
 
 def append_searched_urls(search_results, resp):

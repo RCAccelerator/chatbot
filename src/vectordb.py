@@ -104,6 +104,7 @@ class QdrantVectorStore(VectorStore):
                             "url": res.payload["url"],
                             "kind": res.payload["kind"],
                             "text": res.payload["text"],
+                            "components": res.payload["components"],
                         }
                     )
             return results
