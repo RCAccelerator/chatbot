@@ -1,0 +1,29 @@
+name: Documentation Build Check
+
+on:
+  pull_request:
+    paths:
+      - 'docs/**'
+
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Build documentation
+        run: |
+          pwd
+          ls -all
+          make docs
+          # Check the exit status
+          # if [ $? -ne 0 ]; then
+          #   echo "Documentation build failed!"
+          #   exit 1
+          # fi
