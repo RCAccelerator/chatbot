@@ -9,7 +9,6 @@ from embeddings import search_similar_content, get_num_tokens
 from settings import ModelSettings
 from config import config
 from constants import (
-    SUGGESTED_MINIMUM_SIMILARITY_THRESHOLD,
     SEARCH_RESULTS_TEMPLATE,
     NO_RESULTS_FOUND
     )
@@ -334,14 +333,6 @@ def get_similarity_threshold() -> float:
     # Get threshold from settings or fall back to config default
     threshold = settings.get("search_similarity_threshold",
                              config.search_similarity_threshold)
-
-    # Ensure threshold is within valid range
-    if threshold < SUGGESTED_MINIMUM_SIMILARITY_THRESHOLD:
-        # If default config is also below minimum, use it anyway
-        if (config.search_similarity_threshold <
-                SUGGESTED_MINIMUM_SIMILARITY_THRESHOLD):
-            return config.search_similarity_threshold
-        return SUGGESTED_MINIMUM_SIMILARITY_THRESHOLD
 
     # If threshold is above 1, cap it at 1
     return min(threshold, 1.0)
