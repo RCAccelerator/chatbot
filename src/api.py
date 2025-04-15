@@ -7,6 +7,9 @@ from pydantic import BaseModel, Field
 from chat import handle_user_message_api
 from config import config
 from settings import ModelSettings
+from vectordb import vector_store
+from generation import discover_generative_model_names
+from embeddings import discover_embeddings_model_names
 
 app = FastAPI(title="RCAccelerator API")
 
@@ -66,6 +69,25 @@ async def process_prompt(message_data: ChatRequest) -> Dict[str, Any]:
     embeddings_model_settings: ModelSettings = {
         "model": message_data.embeddings_model_name,
     }
+
+    available_collections, _ = vector_store.get_collection_settings()
+    if message_data.vectordb_collection not in available_collections:
+        return {
+            "error": f"Invalid collection name. Available collections are: {available_collections}"
+        }
+    available_generative_models = await discover_generative_model_names()
+    if message_data.generative_model_name not in available_generative_models:
+        return {
+            "error": "Invalid generative model name. " +
+            f"Available models are: {available_generative_models}"
+        }
+    available_embeddings_models = await discover_embeddings_model_names()
+    if message_data.embeddings_model_name not in available_embeddings_models:
+        return {
+            "error": "Invalid embeddings model name. " +
+            f"Available models are: {available_embeddings_models}"
+        }
+
     response = await handle_user_message_api(
         message_data.content,
         message_data.similarity_threshold,
