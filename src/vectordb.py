@@ -102,8 +102,9 @@ class QdrantVectorStore(VectorStore):
                         {
                             "score": res.score,
                             "url": res.payload["url"],
-                            "kind": res.payload["kind"],
-                            "text": res.payload["text"],
+                            "summary": res.payload["summary"],
+                            "description": res.payload["description"],
+                            "comments": res.payload["comments"],
                             "components": res.payload["components"],
                         }
                     )

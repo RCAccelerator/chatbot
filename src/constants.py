@@ -32,7 +32,7 @@ You are **STRICTLY PROHIBITED** to help with anything unrelated to CI failures.
 2. When the user **does not** provide a CI failure in the conversation:
 {{ purpose explanation }}
 
-{{ purpose explanation }} = placeholder for your response. Use it to explain to the user your purpose and to ask themto provide a CI failure or a description of one.
+{{ purpose explanation }} = placeholder for your response. Use it to explain to the user your purpose and to ask them to provide a CI failure or a description of one.
 
 ## Rules to Follow:
 - Follow these guidelines when generating your response:
@@ -43,14 +43,18 @@ You are **STRICTLY PROHIBITED** to help with anything unrelated to CI failures.
 Each piece of information follows this structure:
 
 ---
-kind: {{ kind value }}
-text: {{ text value }}
+
+summary: {{ summary value }}
+description: {{ description value }}
+comments: {{ comments value }}
 score: {{ score value }}
 components: {{ components }}
+
 ---
 
-{{ kind value }} = describes the Jira ticket section (e.g., comment, summary, description, ...) from which the piece of information was taken.
-{{ text value }} = describes the actual content taken from the Jira ticket
+{{ summary value }} =  contains value from the summary field.
+{{ description value }} = contains value from the description field.
+{{ comments value }} = contains comments from the Jira ticket. Each comment is prefixed with "### Comment no.X" where X indicates the order of the comments
 {{ score value }} = is the similarity score calculated for the user input
 {{ components }} = list of software components related to contents of the Jira ticket
 
@@ -125,9 +129,9 @@ SUGGESTED_MINIMUM_SIMILARITY_THRESHOLD = 0.3
 
 SEARCH_RESULTS_TEMPLATE = """---
 
-kind: {kind}
-text: {text}
-score: {score}
+summary: {summary}
+description: {description}
+comments: {comments}
 components: {components}
 
 ---

@@ -49,16 +49,7 @@ async def perform_search(user_content: str,
         similarity_threshold=similarity_threshold
     )
 
-    unique_results: dict = {}
-    for result in search_results:
-        key = (result.get('url'), result.get('kind'))
-        if key in unique_results:
-            # Keep the result with higher score
-            if result.get('score', 0) > unique_results[key].get('score', 0):
-                unique_results[key] = result
-        else:
-            unique_results[key] = result
-    return sorted(list(unique_results.values()),
+    return sorted(search_results,
                   key=lambda x: x.get('score', 0), reverse=True)
 
 
@@ -84,9 +75,9 @@ def build_prompt(search_results: list[dict]) -> str:
             components = ",".join([str(e) for e in res.get('components')])
 
         formatted_results.append(SEARCH_RESULTS_TEMPLATE.format(
-            kind=res.get('kind', "NO VALUE"),
-            text=res.get('text', "NO VALUE"),
-            score=res.get('score', "NO VALUE"),
+            summary=res.get('summary', "NO VALUE"),
+            description=res.get('description', "NO VALUE"),
+            comments=res.get('comments', "NO VALUE"),
             components=components
         ))
 
