@@ -30,6 +30,7 @@ class MockMessage:
 
 
 async def perform_search(user_content: str,
+                         model_name: str,
                          similarity_threshold: float,
                          collection_name: str = config.vectordb_collection_name) -> list[dict]:
     """
@@ -47,6 +48,7 @@ async def perform_search(user_content: str,
     # Search based on user query first
     search_results = await search_similar_content(
         search_string=user_content,
+        model_name=model_name,
         similarity_threshold=similarity_threshold,
         collection_name=collection_name
     )
@@ -255,11 +257,10 @@ async def handle_user_message(message: cl.Message, debug_mode=False):
         return
 
     if message.content:
-        st = get_similarity_threshold()
-        collection_name = get_collection_name()
         search_results = await perform_search(user_content=search_content,
-                                              similarity_threshold=st,
-                                              collection_name=collection_name)
+                                              model_name=get_embeddings_model_name(),
+                                              similarity_threshold=get_similarity_threshold(),
+                                              collection_name=get_collection_name())
         if debug_mode:
             await print_debug_content(settings, search_content,
                                       search_results)
@@ -274,7 +275,7 @@ async def handle_user_message(message: cl.Message, debug_mode=False):
             message,
             resp,
             {
-                "model": settings["model"],
+                "model": settings["generative_model"],
                 "max_tokens": settings["max_tokens"],
                 "temperature": settings["temperature"]
             },
@@ -292,7 +293,8 @@ async def handle_user_message(message: cl.Message, debug_mode=False):
 async def handle_user_message_api(
     message_content: str,
     similarity_threshold: float,
-    model_settings: ModelSettings,
+    generative_model_settings: ModelSettings,
+    embeddings_model_settings: ModelSettings,
     vectordb_collection: str
     ) -> str:
     """
@@ -315,6 +317,7 @@ async def handle_user_message_api(
     # Perform search and build prompt
     search_results = await perform_search(
         user_content=message_content,
+        model_name=embeddings_model_settings["model"],
         similarity_threshold=similarity_threshold,
         collection_name=vectordb_collection
     )
@@ -323,7 +326,7 @@ async def handle_user_message_api(
 
      # Process user message and get AI response
     is_error = await get_response(
-        {"keep_history": False}, message, response, model_settings,
+        {"keep_history": False}, message, response, generative_model_settings,
         stream_response=False,
     )
 
@@ -365,3 +368,10 @@ def get_collection_name() -> str:
     settings = cl.user_session.get("settings")
 
     return settings.get("collection_name", config.vectordb_collection_name)
+
+def get_embeddings_model_name() -> str:
+    """Get name of the embeddings model."""
+
+    settings = cl.user_session.get("settings")
+
+    return settings.get("embeddings_model", config.embeddings_model)

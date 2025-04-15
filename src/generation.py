@@ -14,6 +14,23 @@ gen_llm = AsyncOpenAI(
 )
 
 
+async def discover_generative_model_names() -> str:
+    """Discover available generative LLM models."""
+    models = await gen_llm.models.list()
+    return extract_model_ids(models)
+
+
+def extract_model_ids(models) -> list[str]:
+    """Extracts model IDs from the models list."""
+    model_ids = []
+    for model in models.data:
+        model_ids.append(model.id)
+    if not model_ids:
+        cl.logger.error("No models available.")
+        return []
+    return model_ids
+
+
 def _handle_context_size_limit(err: OpenAIError) -> str:
     if 'reduce the length of the messages or completion' in err.message:
         cl.user_session.set('message_history', '')

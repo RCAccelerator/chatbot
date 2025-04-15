@@ -10,6 +10,7 @@ from qdrant_client.http.exceptions import ApiException
 
 from config import config
 from vectordb import vector_store
+from generation import extract_model_ids
 
 # Initialize embedding LLM client
 emb_llm = AsyncOpenAI(
@@ -17,6 +18,11 @@ emb_llm = AsyncOpenAI(
     organization="",
     api_key=config.embeddings_llm_api_key,
 )
+
+async def discover_embeddings_model_names() -> List[str]:
+    """Discover available embedding LLM models."""
+    models = await emb_llm.models.list()
+    return extract_model_ids(models)
 
 
 async def generate_embedding(
@@ -47,7 +53,7 @@ async def generate_embedding(
 
 async def search_similar_content(
     search_string: str,
-    model_name: str = config.embeddings_model,
+    model_name: str,
     top_n: int = config.search_top_n,
     similarity_threshold: float = config.search_similarity_threshold,
     collection_name: str = config.vectordb_collection_name,

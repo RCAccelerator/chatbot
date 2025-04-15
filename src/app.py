@@ -10,6 +10,8 @@ from constants import SUGGESTED_MINIMUM_SIMILARITY_THRESHOLD
 from chat import handle_user_message
 from auth import authentification
 from vectordb import vector_store
+from generation import discover_generative_model_names
+from embeddings import discover_embeddings_model_names
 
 
 @cl.on_chat_start
@@ -37,12 +39,20 @@ async def setup_chat_settings():
     temperature, token limits, and other configuration options.
     """
     collection_names, initial_collection_index = vector_store.get_collection_settings()
+    generative_model_names = await discover_generative_model_names()
+    embeddings_model_names = await discover_embeddings_model_names()
     settings = await cl.ChatSettings(
         [
             Select(
-                id="model",
-                label="Chat - Model",
-                values=[config.generative_model],
+                id="generative_model",
+                label="Generative LLM Model",
+                values=generative_model_names,
+                initial_index=0,
+            ),
+            Select(
+                id="embeddings_model",
+                label="Embeddings LLM Model",
+                values=embeddings_model_names,
                 initial_index=0,
             ),
             Slider(

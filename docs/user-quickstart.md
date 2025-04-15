@@ -13,7 +13,8 @@ Settings panel allows adjusment of paranmeters related to the conversation.
 
 ![Settings Panel](./images/settings_panel.png)
 
-- **Chat Model** – At this point, only one model is operational for generative LLM.
+- **Generative model name** – Model name for generative LLM.
+- **Embeddings model name** – Model name for embeddings.
 - **Model Temperature** – Variability and randomness of generated responses (close to 0 means more deterministic and focused outputs, close to 1 means more diversity by sampling from a broader range of possible answers).
 - **Max Tokens** – Influences the maximum length of the response. Increasing this parameter allows the model to produce longer responses.
 - **Search Similarity Threshold** – Currently uses [cosine similarity](https://en.wikipedia.org/wiki/Cosine_similarity) (cosine of the angle between two non-zero vectors in an inner product space). A threshold that is too low may yield irrelevant documents, while a threshold that is too high may exclude relevant ones.
