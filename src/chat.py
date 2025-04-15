@@ -163,6 +163,9 @@ async def check_message_length(message_content: str) -> tuple[bool, str]:
             "To proceed, please:\n"
             "  - Focus on including only the most relevant details, and\n"
             "  - Shorten your input if possible."
+            " \n\n"
+            "To let you continue, we will reset the conversation history.\n"
+            "Please start over with a shorter input."
         )
         return False, error_message
 
@@ -246,6 +249,8 @@ async def handle_user_message(message: cl.Message, debug_mode=False):
         search_content)
     if not is_valid_length:
         resp.content = error_message
+        # Reset message history to let the user try again
+        cl.user_session.set("message_history", [])
         await resp.send()
         return
 
