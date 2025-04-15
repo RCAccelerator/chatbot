@@ -299,10 +299,13 @@ async def handle_user_message_api(
     Returns:
         The AI generated response as a string
     """
+    response = MockMessage(content="", urls=[])
+
     # Check message length
     is_valid_length, error_message = await check_message_length(message_content)
     if not is_valid_length:
-        return error_message
+        response.content = error_message
+        return response
 
     # Perform search and build prompt
     search_results = await perform_search(
@@ -312,7 +315,6 @@ async def handle_user_message_api(
     )
 
     message = MockMessage(content=message_content + build_prompt(search_results), urls=[])
-    response = MockMessage(content="", urls=[])
 
      # Process user message and get AI response
     is_error = await get_response(
