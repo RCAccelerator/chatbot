@@ -5,11 +5,11 @@ RUN groupadd -g 65532 chatgroup && \
     useradd -u 65532 -g chatgroup chatuser
 
 WORKDIR /app
-RUN chown -R chatuser:chatgroup /app
 
 COPY src/ .
 COPY pdm.lock pyproject.toml Makefile .
 RUN make install-pdm install-global
+RUN chown -R chatuser:chatgroup /app
 
 USER chatuser
 EXPOSE 8000
