@@ -8,6 +8,10 @@ RCAccelerator provides an AI-assisted chatbot interface for troubleshooting CI f
 - Searching for relevant context in a vector database based on user queries.
 - Handling adjustable parameters for generative models (model name, temperature, max tokens) and embeddings.
 
+## Swagger UI
+
+The Swagger interface (available at `https://myserver.com/docs`) can be used to discover the API endpoints and also try them.
+
 ## Endpoints
 
 ### `POST /prompt`

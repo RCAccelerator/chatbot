@@ -41,6 +41,13 @@ async def setup_chat_settings():
     collection_names, initial_collection_index = vector_store.get_collection_settings()
     generative_model_names = await discover_generative_model_names()
     embeddings_model_names = await discover_embeddings_model_names()
+    if not generative_model_names or not embeddings_model_names:
+        cl.Message(
+            content="No generative or embeddings model found. "
+                    "Please check your configuration."
+        ).send()
+        return
+
     settings = await cl.ChatSettings(
         [
             Select(
