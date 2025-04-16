@@ -6,12 +6,52 @@ import chainlit as cl
 from chainlit.input_widget import Select, Switch, Slider
 
 from config import config
-from constants import SUGGESTED_MINIMUM_SIMILARITY_THRESHOLD
+import constants
 from chat import handle_user_message
 from auth import authentification
 from vectordb import vector_store
 from generation import discover_generative_model_names
 from embeddings import discover_embeddings_model_names
+
+
+@cl.set_chat_profiles
+async def chat_profile():
+    """
+    Define the chat profile for the application.
+    This function sets up the chat profile with a name, description,
+    icon, and a list of starters.
+    The profile is used to customize the chat experience for users.
+    """
+    return [
+        cl.ChatProfile(
+            name=constants.OPENSTACK_PROFILE,
+            markdown_description="Root Cause Analysis for " +
+                constants.OPENSTACK_PROFILE + " CI",
+            icon="/public/openstack.ico",
+            starters=[
+                cl.Starter(
+                    label="Help me with OpenStack RCA",
+                    message="Explain me how to get help with " +
+                        constants.OPENSTACK_PROFILE + " CI RCA",
+                    icon="/public/debug.svg",
+                ),
+            ],
+        ),
+        cl.ChatProfile(
+            name=constants.OPENSHIFT_PROFILE,
+            markdown_description="Root Cause Analysis for " +
+                constants.OPENSHIFT_PROFILE + " CI",
+            icon="/public/openshift.png",
+            starters=[
+                cl.Starter(
+                    label="Help me with OpenShift RCA",
+                    message="Explain me how to get help with " +
+                        constants.OPENSHIFT_PROFILE + " CI RCA",
+                    icon="/public/debug.svg",
+                ),
+            ],
+        ),
+    ]
 
 
 @cl.on_chat_start
@@ -22,14 +62,7 @@ async def init_chat():
     Sets up model selection, parameters, and initial message history.
     """
 
-    app_user = cl.user_session.get("user")
-    await cl.Message(
-        content=(f"Hello {app_user.identifier}! " +
-                 config.welcome_message)
-    ).send()
     cl.user_session.set("counter", 0)
-
-    # Call the function to set up chat settings
     await setup_chat_settings()
 
 
@@ -84,7 +117,7 @@ async def setup_chat_settings():
                 initial=config.search_similarity_threshold,
                 min=min(
                     config.search_similarity_threshold,
-                    SUGGESTED_MINIMUM_SIMILARITY_THRESHOLD
+                    constants.SUGGESTED_MINIMUM_SIMILARITY_THRESHOLD
                 ),
                 max=1,
                 step=0.05,
@@ -107,9 +140,9 @@ async def setup_chat_settings():
 async def main(message: cl.Message):
     """Main message handler that processes user input."""
     settings = cl.user_session.get("settings")
-
-    await handle_user_message(message,
-                              debug_mode=settings.get("debug_mode", False))
+    if await is_supported_profile():
+        await handle_user_message(message,
+                                  debug_mode=settings.get("debug_mode", False))
 
 
 @cl.password_auth_callback
@@ -128,7 +161,8 @@ async def on_chat_resume():
     This function can be used to restore the chat state or perform any
     necessary actions when the chat is resumed.
     """
-    await setup_chat_settings()
+    if await is_supported_profile():
+        await setup_chat_settings()
 
 
 @cl.on_chat_end
@@ -139,3 +173,19 @@ async def end_chat():
     ends.
     """
     pass  # pylint: disable=unnecessary-pass
+
+
+async def is_supported_profile() -> bool:
+    """
+    Check the current chat profile and ensure it's supported.
+
+    Returns:
+        bool: True if the profile is supported, False otherwise.
+    """
+    profile = cl.user_session.get("chat_profile")
+    if profile != constants.OPENSTACK_PROFILE:
+        await cl.Message(
+            content="Only OpenStack profile is available for now."
+        ).send()
+        return False
+    return True
