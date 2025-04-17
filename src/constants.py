@@ -134,3 +134,6 @@ components: {components}
 """
 
 NO_RESULTS_FOUND = "NO relevant Jira tickets found."
+
+OPENSTACK_PROFILE = "Red Hat OpenStack Services on OpenShift"
+OPENSHIFT_PROFILE = "Red Hat OpenShift"

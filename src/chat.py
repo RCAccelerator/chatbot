@@ -258,11 +258,13 @@ async def handle_user_message(message: cl.Message, debug_mode=False):
 
     previous_messages = _build_search_content_from_history(message_history)
     search_content = previous_messages + message.content
+    file_uploaded = False
 
     try:
         if message.elements and message.elements[0].path:
             with open(message.elements[0].path, 'r', encoding='utf-8') as file:
                 search_content += file.read()
+                file_uploaded = True
     except OSError as e:
         cl.logger.error(e)
         resp.content = "An error occurred while processing your file."
@@ -278,6 +280,11 @@ async def handle_user_message(message: cl.Message, debug_mode=False):
         cl.user_session.set("message_history", [])
         await resp.send()
         return
+
+    # If the user uploaded a file and didn't provide any content, use the file content
+    # as the search content
+    if file_uploaded and not message.content:
+        message.content = search_content
 
     if message.content:
         search_results = await perform_search(user_content=search_content,
