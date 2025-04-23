@@ -103,10 +103,10 @@ class QdrantVectorStore(VectorStore):
                     results.append(
                         {
                             "score": res.score,
-                            "url": res.payload["url"],
-                            "kind": res.payload["kind"],
-                            "text": res.payload["text"],
-                            "components": res.payload["components"],
+                            "url": res.payload.get("url", ""),
+                            "kind": res.payload.get("kind", ""),
+                            "text": res.payload.get("text", ""),
+                            "components": res.payload.get("components", []),
                         }
                     )
             return results
