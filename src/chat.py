@@ -89,15 +89,7 @@ async def perform_multi_collection_search(
         for r in results:
             r['collection'] = collection
         all_results.extend(results)
-    unique_results = {}
-    for result in all_results:
-        key = (result.get('url'), result.get('kind'))
-        if key in unique_results:
-            if result.get('score', 0) > unique_results[key].get('score', 0):
-                unique_results[key] = result
-        else:
-            unique_results[key] = result
-    return sorted(list(unique_results.values()), key=lambda x: x.get('score', 0), reverse=True)
+        return sorted(all_results, key=lambda x: x.get('score', 0), reverse=True)
 
 
 def build_prompt(search_results: list[dict]) -> str:
