@@ -30,43 +30,6 @@ class MockMessage:
     urls: list
 
 
-async def perform_search(user_content: str,
-                         model_name: str,
-                         similarity_threshold: float,
-                         collection_name: str) -> list[dict]:
-    """
-    Perform search inside of the vector DB to find information that might
-    relate to the problem described by the user.
-
-    Args:
-        user_content: User's input query
-        similarity_threshold: Minimum similarity score threshold
-
-    Returns:
-        List of unique search results sorted by relevance
-    """
-
-    # Search based on user query first
-    search_results = await search_similar_content(
-        search_string=user_content,
-        model_name=model_name,
-        similarity_threshold=similarity_threshold,
-        collection_name=collection_name
-    )
-
-    unique_results: dict = {}
-    for result in search_results:
-        key = (result.get('url'), result.get('kind'))
-        if key in unique_results:
-            # Keep the result with higher score
-            if result.get('score', 0) > unique_results[key].get('score', 0):
-                unique_results[key] = result
-        else:
-            unique_results[key] = result
-    return sorted(list(unique_results.values()),
-                  key=lambda x: x.get('score', 0), reverse=True)
-
-
 async def perform_multi_collection_search(
     message_content: str,
     embeddings_model_name: str,
