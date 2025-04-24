@@ -6,7 +6,7 @@ from openai.types.chat import ChatCompletionMessageParam
 
 from vectordb import vector_store
 from generation import get_response
-from embeddings import search_similar_content, get_num_tokens, generate_embedding
+from embeddings import get_num_tokens, generate_embedding
 from settings import ModelSettings
 from config import config
 from constants import (
@@ -59,7 +59,7 @@ async def perform_multi_collection_search(
 def build_prompt(search_results: list[dict]) -> str:
     """
     Generate a prompt based on the information we retrieved from the vector
-    database.
+    database, trimming results to fit within the model's context size.
 
     Args:
         search_results: A list of results obtained from the vector db
@@ -70,20 +70,42 @@ def build_prompt(search_results: list[dict]) -> str:
     if not search_results:
         return config.prompt_header + NO_RESULTS_FOUND
 
+    # Estimate tokens using a conservative ratio (1 token ≈ 3 characters)
+    chars_per_token = 3
+
+    # Reserve 1/3 of the context for conversation history and response
+    reserved_tokens = config.generation_llm_max_context // 3
+    available_tokens = config.generation_llm_max_context - reserved_tokens
+
+    # Estimate tokens in the prompt header
+    prompt_header_tokens = len(config.prompt_header) // chars_per_token
+
+    # Calculate available tokens for search results
+    available_result_tokens = available_tokens - prompt_header_tokens
+
+    # Determine maximum tokens per result
+    target_results_count = min(len(search_results), config.search_top_n)
+    max_tokens_per_result = available_result_tokens // max(1, target_results_count)
+    max_chars_per_result = max_tokens_per_result * chars_per_token
+
     formatted_results = []
 
-    for res in search_results:
+    for res in search_results[:target_results_count]:
         components = "NO VALUE"
         if res.get('components', []):
             components = ",".join([str(e) for e in res.get('components')])
 
+        # Truncate text if it's too long to fit in allocated space
+        text = res.get('text', "NO VALUE")
+        if len(text) > max_chars_per_result - 100:  # Leave space for other fields
+            text = text[:max_chars_per_result - 103] + "..."
+
         formatted_results.append(SEARCH_RESULTS_TEMPLATE.format(
             kind=res.get('kind', "NO VALUE"),
-            text=res.get('text', "NO VALUE"),
+            text=text,
             score=res.get('score', "NO VALUE"),
             components=components
         ))
-
     return config.prompt_header + "\n" + "\n".join(formatted_results)
 
 

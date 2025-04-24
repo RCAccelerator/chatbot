@@ -17,6 +17,7 @@ class Config:
     """Configuration class for the RCA chatbot."""
     generation_llm_api_url: str
     generation_llm_api_key: str
+    generation_llm_max_context: int
     embeddings_llm_api_url: str
     embeddings_llm_api_key: str
     embeddings_llm_max_context: int
@@ -48,6 +49,10 @@ class Config:
                 "GENERATION_LLM_API_URL", "http://localhost:8000/v1"),
             generation_llm_api_key=os.environ.get(
                 "GENERATION_LLM_API_KEY", ""),
+            generation_llm_max_context=int(os.environ.get(
+                "generation_LLM_MAX_CONTEXT",
+                32768,
+            )),
             embeddings_llm_api_url=os.environ.get(
                 "EMBEDDINGS_LLM_API_URL", "http://localhost:8000/v1"),
             embeddings_llm_api_key=os.environ.get(
