@@ -10,7 +10,7 @@ from qdrant_client.http.exceptions import ApiException
 
 from config import config
 from vectordb import vector_store
-from generation import extract_model_ids
+from utils import extract_model_ids
 
 # Initialize embedding LLM client
 emb_llm = AsyncOpenAI(

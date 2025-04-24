@@ -5,7 +5,7 @@ import httpx
 from openai.types.chat import ChatCompletionMessageParam
 
 from vectordb import vector_store
-from generation import get_response
+from generation import get_response, preprocess_search_results
 from embeddings import search_similar_content, get_num_tokens, generate_embedding
 from settings import ModelSettings
 from config import config
@@ -28,43 +28,6 @@ class MockMessage:
     """
     content: str
     urls: list
-
-
-async def perform_search(user_content: str,
-                         model_name: str,
-                         similarity_threshold: float,
-                         collection_name: str) -> list[dict]:
-    """
-    Perform search inside of the vector DB to find information that might
-    relate to the problem described by the user.
-
-    Args:
-        user_content: User's input query
-        similarity_threshold: Minimum similarity score threshold
-
-    Returns:
-        List of unique search results sorted by relevance
-    """
-
-    # Search based on user query first
-    search_results = await search_similar_content(
-        search_string=user_content,
-        model_name=model_name,
-        similarity_threshold=similarity_threshold,
-        collection_name=collection_name
-    )
-
-    unique_results: dict = {}
-    for result in search_results:
-        key = (result.get('url'), result.get('kind'))
-        if key in unique_results:
-            # Keep the result with higher score
-            if result.get('score', 0) > unique_results[key].get('score', 0):
-                unique_results[key] = result
-        else:
-            unique_results[key] = result
-    return sorted(list(unique_results.values()),
-                  key=lambda x: x.get('score', 0), reverse=True)
 
 
 async def perform_multi_collection_search(
@@ -324,7 +287,9 @@ async def handle_user_message(message: cl.Message, debug_mode=False):
             await print_debug_content(settings, search_content,
                                       search_results)
 
-        message.content += build_prompt(search_results)
+        preprocessed_search_results = await preprocess_search_results(search_results)
+
+        message.content += build_prompt(preprocessed_search_results)
         # Process user message and get AI response
         is_error = await get_response(
             {
@@ -344,7 +309,7 @@ async def handle_user_message(message: cl.Message, debug_mode=False):
 
         if not is_error:
             # Extend response with searched jira urls
-            append_searched_urls(search_results, resp)
+            append_searched_urls(preprocessed_search_results, resp)
 
     update_msg_count()
     await resp.send()
