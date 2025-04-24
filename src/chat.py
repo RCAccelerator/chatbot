@@ -148,7 +148,7 @@ def append_searched_urls(search_results, resp, urls_as_list=False):
         if hasattr(resp, 'urls'):
             resp.urls = deduped_urls
     elif search_message:
-        resp.content += "\n\nTop similar bugs:\n" + search_message
+        resp.content += "\n\nTop related knowledge:\n" + search_message
 
 
 def update_msg_count():
