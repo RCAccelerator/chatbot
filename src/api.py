@@ -44,6 +44,10 @@ class ChatRequest(BaseModel):
         config.vectordb_collection_name_errata,
         description="The name of the vector database collection for Errata to use."
     )
+    vectordb_collection_documentation: str = Field(
+        config.vectordb_collection_name_documentation,
+        description="The name of the vector database collection for Documentation to use."
+    )
     generative_model_name: str = Field(
         config.generative_model,
         description="The name of the generative model to use."
@@ -57,7 +61,8 @@ class ChatRequest(BaseModel):
         description="The name of the product to use."
     )
 
-    @field_validator('vectordb_collection_jira', 'vectordb_collection_errata', mode='after')
+    @field_validator('vectordb_collection_jira', 'vectordb_collection_errata',
+                     'vectordb_collection_documentation', mode='after')
     @classmethod
     def validate_vectordb_collections(cls, value: str) -> str:
         """Validate the vector database collection names."""
@@ -118,7 +123,8 @@ async def process_prompt(message_data: ChatRequest) -> Dict[str, Any]:
 
     vectordb_collections = [
         c for c in [message_data.vectordb_collection_jira,
-                    message_data.vectordb_collection_errata] if c
+                    message_data.vectordb_collection_errata,
+                    message_data.vectordb_collection_documentation] if c
     ]
     if not vectordb_collections:
         return {"error": "No collections specified. Please specify at least one collection."}

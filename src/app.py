@@ -138,6 +138,14 @@ async def setup_chat_settings():
                     config.vectordb_collection_name_errata
                 ),
             ),
+            Select(
+                id="documentation_collection_name",
+                label="Vector DB Collection for Documentation",
+                values=collection_names,
+                initial_index=collection_names.index(
+                    config.vectordb_collection_name_documentation
+                ),
+            ),
             Switch(id="stream", label="Stream a response", initial=True),
             Switch(id="debug_mode", label="Debug Mode", initial=False),
             Switch(id="keep_history", label="Keep message history in thread", initial=True)

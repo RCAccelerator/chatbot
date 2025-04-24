@@ -309,6 +309,7 @@ async def handle_user_message(message: cl.Message, debug_mode=False):
     collections = [
         settings["jira_collection_name"],
         settings["errata_collection_name"],
+        settings["documentation_collection_name"],
     ]
 
     if message.content:

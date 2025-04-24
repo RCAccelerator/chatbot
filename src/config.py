@@ -32,6 +32,7 @@ class Config:
     vectordb_port: int
     vectordb_collection_name_jira: str
     vectordb_collection_name_errata: str
+    vectordb_collection_name_documentation: str
     search_instruction: str
     search_similarity_threshold: float
     search_top_n: int
@@ -78,6 +79,8 @@ class Config:
                 "VECTORDB_COLLECTION_NAME_JIRA", 'rca-knowledge-base'),
             vectordb_collection_name_errata=os.environ.get(
                 "VECTORDB_COLLECTION_NAME_ERRATA", 'rca-errata'),
+            vectordb_collection_name_documentation=os.environ.get(
+                "VECTORDB_COLLECTION_NAME_DOCUMENTATION", 'osp-docs-base'),
             search_instruction=os.environ.get(
                 "SEARCH_INSTRUCTION", SEARCH_INSTRUCTION),
             search_similarity_threshold=float(
