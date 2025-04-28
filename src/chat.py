@@ -1,5 +1,6 @@
 """Handler for chat messages and responses."""
 from dataclasses import dataclass
+import re
 import chainlit as cl
 import httpx
 from openai.types.chat import ChatCompletionMessageParam
@@ -177,7 +178,7 @@ async def print_debug_content(
         settings: dict,
         search_content: str,
         search_results: list[dict],
-        context: str) -> None:
+        message_content: str) -> None:
     """Print debug content if user requested it.
 
     Args:
@@ -217,7 +218,10 @@ async def print_debug_content(
                 f"{result.get('text', 'N/A')[:500]} ...\n"
                 f"```\n\n"
             )
-    debug_content += f"\n```{context}```"
+    # Escaping markdown
+    message_content = re.sub(f"([{re.escape(r'`[*_')}])", "\\\1", message_content)
+    debug_content += f"\n#### Full user message:\n```\n{message_content}\n```"
+
     cl.logger.debug(debug_content)
     await cl.Message(content=debug_content, author="debug").send()
 
