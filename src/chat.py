@@ -76,13 +76,22 @@ def build_prompt(search_results: list[dict]) -> str:
         components = "NO VALUE"
         if res.get('components', []):
             components = ",".join([str(e) for e in res.get('components')])
-
-        formatted_results.append(SEARCH_RESULTS_TEMPLATE.format(
+        result = SEARCH_RESULTS_TEMPLATE.format(
             kind=res.get('kind', "NO VALUE"),
             text=res.get('text', "NO VALUE"),
             score=res.get('score', "NO VALUE"),
             components=components
-        ))
+        )
+
+        # Append additional fields
+        result += "\n".join(
+            [
+                f"{k}: {v}" for k, v in res.items()
+                if k not in ['kind', 'text', 'score', 'components']
+            ])
+        result += "\n---"
+
+        formatted_results.append(result)
 
     return config.prompt_header + "\n" + "\n".join(formatted_results)
 
@@ -167,7 +176,8 @@ async def check_message_length(message_content: str) -> tuple[bool, str]:
 async def print_debug_content(
         settings: dict,
         search_content: str,
-        search_results: list[dict]) -> None:
+        search_results: list[dict],
+        context: str) -> None:
     """Print debug content if user requested it.
 
     Args:
@@ -207,6 +217,8 @@ async def print_debug_content(
                 f"{result.get('text', 'N/A')[:500]} ...\n"
                 f"```\n\n"
             )
+    debug_content += f"\n```{context}```"
+    cl.logger.debug(debug_content)
     await cl.Message(content=debug_content, author="debug").send()
 
 
@@ -283,11 +295,12 @@ async def handle_user_message(message: cl.Message, debug_mode=False):
             get_similarity_threshold(),
             collections
         )
+        message.content += build_prompt(search_results)
+
         if debug_mode:
             await print_debug_content(settings, search_content,
-                                      search_results)
+                                      search_results, message.content)
 
-        message.content += build_prompt(search_results)
         # Process user message and get AI response
         is_error = await get_response(
             {

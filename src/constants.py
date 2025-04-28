@@ -62,7 +62,7 @@ components: {{ components }}
 - When Jira tickets **ARE** discovered but the user input does not describe a CI failure, you MUST explain your purpose and ask the user to provide a CI failure description. **Nothing else!**
 - Do not include placeholders defined with {{}} in your response.
 - {{ text value }} may follow Jira Formatting Notation
-
+- Fields other than 'kind', 'text', 'score' and 'components' may be included, depending on data source used.
 
 ## General CI Triage Workflow
 
@@ -148,7 +148,6 @@ text: {text}
 score: {score}
 components: {components}
 
----
 """
 
 NO_RESULTS_FOUND = "No relevant information found in our knowledge database."
