@@ -11,7 +11,6 @@ from embeddings import get_num_tokens, generate_embedding
 from settings import ModelSettings
 from config import config
 from constants import (
-    CI_LOGS_PROFILE,
     DOCS_PROFILE,
     SEARCH_RESULTS_TEMPLATE,
     NO_RESULTS_FOUND
@@ -288,7 +287,7 @@ async def handle_user_message(
         return
 
     collections = get_collections_per_profile(
-        cl.user_session.get("chat_profile", CI_LOGS_PROFILE)
+        cl.user_session.get("chat_profile")
     )
     error_message = check_collections(collections)
     if error_message:
