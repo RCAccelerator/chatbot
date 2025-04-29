@@ -40,9 +40,9 @@ async def chat_profile():
             icon="/public/book.png",
             starters=[
                 cl.Starter(
-                    label="Chat with documentation and errata",
+                    label="How to collect diagnostic information",
                     message="How to collecting diagnostic information for support" +
-                            "Red Hat OpenStack Services on OpenShift",
+                            " Red Hat OpenStack Services on OpenShift",
                     icon="/public/debug.svg",
                 ),
             ],
