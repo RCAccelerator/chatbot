@@ -115,10 +115,7 @@ async def setup_chat_settings():
                 id="search_similarity_threshold",
                 label="Search Similarity Threshold",
                 initial=config.search_similarity_threshold,
-                min=min(
-                    config.search_similarity_threshold,
-                    constants.SUGGESTED_MINIMUM_SIMILARITY_THRESHOLD
-                ),
+                min=0,
                 max=1,
                 step=0.05,
             ),

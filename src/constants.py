@@ -139,8 +139,6 @@ CONTEXT_HEADER = """
 Here is the text with the information from our knowledge database:\n"
 """
 
-SUGGESTED_MINIMUM_SIMILARITY_THRESHOLD = 0.0
-
 SEARCH_RESULTS_TEMPLATE = """---
 
 kind: {kind}
