@@ -18,9 +18,20 @@ Settings panel allows adjusment of paranmeters related to the conversation.
 - **Model Temperature** – Variability and randomness of generated responses (close to 0 means more deterministic and focused outputs, close to 1 means more diversity by sampling from a broader range of possible answers).
 - **Max Tokens** – Influences the maximum length of the response. Increasing this parameter allows the model to produce longer responses.
 - **Search Similarity Threshold** – Currently uses [cosine similarity](https://en.wikipedia.org/wiki/Cosine_similarity) (cosine of the angle between two non-zero vectors in an inner product space). A threshold that is too low may yield irrelevant documents, while a threshold that is too high may exclude relevant ones.
-- **VectorDB collection name** – The name of the collection in the vector database. This is where the model will search for relevant documents to answer your question.
 - **Stream a Response** – Streaming a response versus waiting and printing the entire response at once.
 - **Debug Mode** – Provides lots of useful information, allowing developers and users to assess the quality of the response.
+
+### Profiles
+
+RCAccelerator supports different profiles that optimize the chatbot for specific types of tasks. You can change the active profile using the selector in the top left corner of the UI.
+
+Currently, two profiles are available:
+
+- **CI Logs Profile** – Optimized for analyzing and troubleshooting CI failures and log files. This profile provides targeted information about CI systems and common failure patterns.
+
+- **Documentation Profile** – Designed for answering questions about project documentation and Red Hat Errata to providing guidance on our products.
+
+Selecting a profile changes both the vector database collection being searched and the system prompt used to guide the model's responses, ensuring that the chatbot gives you the most relevant information for your current task.
 
 ## Using RCAccelerator Effectively
 

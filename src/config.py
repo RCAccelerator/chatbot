@@ -4,7 +4,8 @@ from dataclasses import dataclass
 import os
 
 from constants import (
-    SYSTEM_PROMPT,
+    CI_LOGS_SYSTEM_PROMPT,
+    DOCS_SYSTEM_PROMPT,
     WELCOME_MESSAGE,
     CONTEXT_HEADER,
     SEARCH_INSTRUCTION
@@ -36,7 +37,8 @@ class Config:
     search_instruction: str
     search_similarity_threshold: float
     search_top_n: int
-    system_prompt: str
+    ci_logs_system_prompt: str
+    docs_system_prompt: str
     prompt_header: str
     welcome_message: str
 
@@ -86,7 +88,8 @@ class Config:
             search_similarity_threshold=float(
                 os.environ.get("SEARCH_SIMILARITY_THRESHOLD", 0.8)),
             search_top_n=int(os.environ.get("SEARCH_TOP_N", 5)),
-            system_prompt=os.environ.get("SYSTEM_PROMPT", SYSTEM_PROMPT),
+            ci_logs_system_prompt=os.environ.get("CI_LOGS_SYSTEM_PROMPT", CI_LOGS_SYSTEM_PROMPT),
+            docs_system_prompt=os.environ.get("DOCS_SYSTEM_PROMPT", DOCS_SYSTEM_PROMPT),
             welcome_message=os.environ.get("WELCOME_MESSAGE", WELCOME_MESSAGE),
             prompt_header=os.environ.get("CONTEXT_HEADER", CONTEXT_HEADER)
         )

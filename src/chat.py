@@ -11,6 +11,8 @@ from embeddings import get_num_tokens, generate_embedding
 from settings import ModelSettings
 from config import config
 from constants import (
+    CI_LOGS_PROFILE,
+    DOCS_PROFILE,
     SEARCH_RESULTS_TEMPLATE,
     NO_RESULTS_FOUND
     )
@@ -247,7 +249,9 @@ def _filter_debug_messages(
     return message_history
 
 
-async def handle_user_message(message: cl.Message, debug_mode=False):
+async def handle_user_message(
+    message: cl.Message,
+    debug_mode=False):
     """
     Main handler for user messages.
 
@@ -283,12 +287,14 @@ async def handle_user_message(message: cl.Message, debug_mode=False):
         await resp.send()
         return
 
-    # Get collections from settings
-    collections = [
-        settings["jira_collection_name"],
-        settings["errata_collection_name"],
-        settings["documentation_collection_name"],
-    ]
+    collections = get_collections_per_profile(
+        cl.user_session.get("chat_profile", CI_LOGS_PROFILE)
+    )
+    error_message = check_collections(collections)
+    if error_message:
+        resp.content = error_message
+        await resp.send()
+        return
 
     if message.content:
         # Search all collections with the same embedding (embedding now generated inside)
@@ -334,8 +340,7 @@ async def handle_user_message_api( # pylint: disable=too-many-arguments
     similarity_threshold: float,
     generative_model_settings: ModelSettings,
     embeddings_model_settings: ModelSettings,
-    vectordb_collections: list[str],
-    product_name: str,
+    profile_name: str,
     ) -> str:
     """
     API handler for user messages without Chainlit context.
@@ -348,12 +353,18 @@ async def handle_user_message_api( # pylint: disable=too-many-arguments
         response.content = error_message
         return response
 
+    collections = get_collections_per_profile(profile_name)
+    error_message = check_collections(collections)
+    if error_message:
+        response.content = error_message
+        return response
+
     # Perform search in all collections (embedding generated inside)
     search_results = await perform_multi_collection_search(
         message_content,
         embeddings_model_settings["model"],
         similarity_threshold=similarity_threshold,
-        collections=vectordb_collections
+        collections=collections
     )
 
     message = MockMessage(content=message_content + build_prompt(search_results), urls=[])
@@ -361,7 +372,7 @@ async def handle_user_message_api( # pylint: disable=too-many-arguments
     # Process user message and get AI response
     is_error = await get_response(
         {"keep_history": False}, message, response, generative_model_settings,
-        product_name, stream_response=False
+        profile_name, stream_response=False
     )
     if not is_error:
         append_searched_urls(search_results, response, urls_as_list=True)
@@ -393,3 +404,49 @@ def get_embeddings_model_name() -> str:
     settings = cl.user_session.get("settings")
 
     return settings.get("embeddings_model", config.embeddings_model)
+
+
+def check_collections(collections_to_check: list[str]) -> str:
+    """
+    Verify if the specified collections exist in the vector store.
+
+    Args:
+        collections_to_check: A list of collection names to verify.
+
+    Returns:
+        An error message string listing missing collections, or an empty string
+        if all collections exist.
+    """
+    available_collections = vector_store.get_collections()
+    missing_collections = [
+        collection for collection in collections_to_check
+        if collection not in available_collections
+    ]
+
+    if missing_collections:
+        return (f"The following collections are configured but not found in "
+                f"the vector store: {', '.join(missing_collections)}. "
+                f"Please ensure they are created or update the configuration.")
+    return ""
+
+
+def get_collections_per_profile(
+    profile_name: str
+) -> list[str]:
+    """
+    Get the collections associated with a specific profile.
+
+    Args:
+        profile_name: The name of the profile
+
+    Returns:
+        A list of collections associated with the profile
+    """
+    if profile_name == DOCS_PROFILE:
+        return [
+            config.vectordb_collection_name_documentation,
+            config.vectordb_collection_name_errata,
+        ]
+    return [
+        config.vectordb_collection_name_jira,
+    ]

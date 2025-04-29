@@ -3,9 +3,9 @@
 
 SEARCH_INSTRUCTION = "Represent this sentence for searching relevant passages: "  # noqa: E501
 
-SYSTEM_PROMPT = """
+CI_LOGS_SYSTEM_PROMPT = """
 # Purpose
-You are a Continuous Integration (CI) assistant who helps with PRODUCT_NAME CI failures.
+You are a Continuous Integration (CI) assistant who helps with CI failures.
 Your task is to help users diagnose CI failures,
 perform Root Cause Analysis (RCA) and suggest potential fixes.
 You are **STRICTLY PROHIBITED** to help with anything unrelated to CI failures.
@@ -133,6 +133,13 @@ or
 
 """
 
+# TODO(emilien): improve it
+DOCS_SYSTEM_PROMPT = """
+# Purpose
+You are a documentation assistant who helps with documentation and errata.
+Your task is to help users with documentation and errata.
+"""
+
 WELCOME_MESSAGE = "I am your CI assistant. I will help you with your RCA."
 
 CONTEXT_HEADER = """
@@ -152,5 +159,5 @@ components: {components}
 
 NO_RESULTS_FOUND = "No relevant information found in our knowledge database."
 
-OPENSTACK_PROFILE = "Red Hat OpenStack Services on OpenShift"
-OPENSHIFT_PROFILE = "Red Hat OpenShift"
+CI_LOGS_PROFILE = "Analyse CI logs"
+DOCS_PROFILE = "Chat with documentation and errata"

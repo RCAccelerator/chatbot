@@ -9,7 +9,6 @@ from config import config
 import constants
 from chat import handle_user_message
 from auth import authentification
-from vectordb import vector_store
 from generation import discover_generative_model_names
 from embeddings import discover_embeddings_model_names
 
@@ -24,29 +23,26 @@ async def chat_profile():
     """
     return [
         cl.ChatProfile(
-            name=constants.OPENSTACK_PROFILE,
-            markdown_description="Root Cause Analysis for " +
-                constants.OPENSTACK_PROFILE + " CI",
-            icon="/public/openstack.ico",
+            name=constants.CI_LOGS_PROFILE,
+            markdown_description="Root Cause Analysis for CI logs",
+            icon="/public/ci-logs.png",
             starters=[
                 cl.Starter(
-                    label="Help me with OpenStack RCA",
-                    message="Explain me how to get help with " +
-                        constants.OPENSTACK_PROFILE + " CI RCA",
+                    label="Help me with CI job RCA",
+                    message="Explain me how to get help with CI failures",
                     icon="/public/debug.svg",
                 ),
             ],
         ),
         cl.ChatProfile(
-            name=constants.OPENSHIFT_PROFILE,
-            markdown_description="Root Cause Analysis for " +
-                constants.OPENSHIFT_PROFILE + " CI",
-            icon="/public/openshift.png",
+            name=constants.DOCS_PROFILE,
+            markdown_description="Chat with documentation and errata",
+            icon="/public/book.png",
             starters=[
                 cl.Starter(
-                    label="Help me with OpenShift RCA",
-                    message="Explain me how to get help with " +
-                        constants.OPENSHIFT_PROFILE + " CI RCA",
+                    label="Chat with documentation and errata",
+                    message="How to collecting diagnostic information for support" +
+                            "Red Hat OpenStack Services on OpenShift",
                     icon="/public/debug.svg",
                 ),
             ],
@@ -71,7 +67,6 @@ async def setup_chat_settings():
     Set up the chat settings interface with model selection,
     temperature, token limits, and other configuration options.
     """
-    collection_names = vector_store.get_collections()
     generative_model_names = await discover_generative_model_names()
     embeddings_model_names = await discover_embeddings_model_names()
     if not generative_model_names or not embeddings_model_names:
@@ -122,30 +117,6 @@ async def setup_chat_settings():
                 max=1,
                 step=0.05,
             ),
-            Select(
-                id="jira_collection_name",
-                label="Vector DB Collection for Jira",
-                values=collection_names,
-                initial_index=collection_names.index(
-                    config.vectordb_collection_name_jira
-                ),
-            ),
-            Select(
-                id="errata_collection_name",
-                label="Vector DB Collection for Errata",
-                values=collection_names,
-                initial_index=collection_names.index(
-                    config.vectordb_collection_name_errata
-                ),
-            ),
-            Select(
-                id="documentation_collection_name",
-                label="Vector DB Collection for Documentation",
-                values=collection_names,
-                initial_index=collection_names.index(
-                    config.vectordb_collection_name_documentation
-                ),
-            ),
             Switch(id="stream", label="Stream a response", initial=True),
             Switch(id="debug_mode", label="Debug Mode", initial=False),
             Switch(id="keep_history", label="Keep message history in thread", initial=True)
@@ -158,9 +129,8 @@ async def setup_chat_settings():
 async def main(message: cl.Message):
     """Main message handler that processes user input."""
     settings = cl.user_session.get("settings")
-    if await is_supported_profile():
-        await handle_user_message(message,
-                                  debug_mode=settings.get("debug_mode", False))
+    await handle_user_message(message,
+                              debug_mode=settings.get("debug_mode", False))
 
 
 @cl.password_auth_callback
@@ -179,8 +149,7 @@ async def on_chat_resume():
     This function can be used to restore the chat state or perform any
     necessary actions when the chat is resumed.
     """
-    if await is_supported_profile():
-        await setup_chat_settings()
+    await setup_chat_settings()
 
 
 @cl.on_chat_end
@@ -191,19 +160,3 @@ async def end_chat():
     ends.
     """
     pass  # pylint: disable=unnecessary-pass
-
-
-async def is_supported_profile() -> bool:
-    """
-    Check the current chat profile and ensure it's supported.
-
-    Returns:
-        bool: True if the profile is supported, False otherwise.
-    """
-    profile = cl.user_session.get("chat_profile")
-    if profile != constants.OPENSTACK_PROFILE:
-        await cl.Message(
-            content="Only OpenStack profile is available for now."
-        ).send()
-        return False
-    return True

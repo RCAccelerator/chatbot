@@ -30,7 +30,7 @@ JSON object matching the schema:
 | `similarity_threshold`  | float   | Default: `config.search_similarity_threshold` Range: (0, 1]     | Filter for relevant documents by cosine similarity. A higher threshold yields fewer but more precise documents, while a lower threshold is more inclusive.  |
 | `temperature`           | float   | Default: `config.default_temperature` Range: [0.1, 1.0]         | Controls the variability in generated responses. A value closer to 1.0 produces more creative/flexible answers; near 0.1 yields more deterministic results. |
 | `max_tokens`            | int     | Default: `config.default_max_tokens` Range: [1, 1024]           | Limits the maximum length of the generated response.                                                                                                        |
-| `vectordb_collection`   | string  | Default: `config.vectordb_collection_name`                      | The name of the vector database collection to search for relevant context documents.                                                                        |
+| `profile_name`          | string  | Default: `constants.CI_LOGS_PROFILE`                            | The name of the profile to use.                                                                                                                             |
 | `generative_model_name` | string  | Default: `config.generative_model`                              | The name of the LLM to be used for response generation.                                                                                                     |
 | `embeddings_model_name` | string  | Default: `config.embeddings_model`                              | The name of the embeddings model used for vector-based document similarity.                                                                                 |
 
@@ -45,7 +45,6 @@ Content-Type: application/json
   "similarity_threshold": 0.75,
   "temperature": 0.7,
   "max_tokens": 300,
-  "vectordb_collection": "rca-knowledge-base",
   "generative_model_name": "gpt3.5",
   "embeddings_model_name": "ada-002"
 }
@@ -100,7 +99,6 @@ curl -X POST https://my-server.com/prompt \
       "similarity_threshold": 0.8,
       "temperature": 0.5,
       "max_tokens": 1024,
-      "vectordb_collection": "rca-knowledge-base",
       "generative_model_name": "mistralai/Mistral-7B-Instruct-v0.3",
       "embeddings_model_name": "adaBAAI/bge-m3"
     }'
