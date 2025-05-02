@@ -389,7 +389,7 @@ async def handle_user_message_api( # pylint: disable=too-many-arguments
     # Process user message and get AI response
     is_error = await get_response(
         {"keep_history": False}, message, response, generative_model_settings,
-        profile_name, stream_response=False
+        profile_name, is_api=True, stream_response=False
     )
     if not is_error:
         append_searched_urls(search_results, response, urls_as_list=True)

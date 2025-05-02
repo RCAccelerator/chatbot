@@ -32,9 +32,11 @@ def extract_model_ids(models) -> list[str]:
     return model_ids
 
 
-def _handle_context_size_limit(err: OpenAIError) -> str:
+def _handle_context_size_limit(err: OpenAIError,
+                               is_api: bool = False) -> str:
     if 'reduce the length of the messages or completion' in err.message:
-        cl.user_session.set('message_history', '')
+        if not is_api :
+            cl.user_session.set('message_history', '')
         return 'Request size with history exceeded limit, ' \
                'Please start a new thread.'
     return str(err)
@@ -44,6 +46,7 @@ async def get_response(history_settings: HistorySettings, # pylint: disable=too-
                        user_message: cl.Message, response_msg: cl.Message,
                        model_settings: ModelSettings,
                        profile_name: str,
+                       is_api: bool = False,
                        stream_response: bool = True) -> bool:
     """Process the user's message and generate a response using the LLM.
 
@@ -84,14 +87,15 @@ async def get_response(history_settings: HistorySettings, # pylint: disable=too-
             response_msg.content = response.choices[0].message.content or ""
         message_history.append({"role": "assistant",
                                 "content": response_msg.content})
-        if history_settings.get('keep_history', True):
+        if history_settings.get('keep_history', True) and not is_api:
             cl.user_session.set('message_history', message_history)
         is_error = False
     except OpenAIError as e:
-        err_msg = _handle_context_size_limit(e)
+        err_msg = _handle_context_size_limit(e, is_api)
 
-        cl.logger.error("Error in process_message_and_get_response: %s",
-                        err_msg)
+        if not is_api:
+            cl.logger.error("Error in process_message_and_get_response: %s",
+                            err_msg)
         response_msg.content = (
             f"I encountered an error while generating a response: {err_msg}."
         )
