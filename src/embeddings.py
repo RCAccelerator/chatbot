@@ -97,29 +97,29 @@ async def get_num_tokens(
     return 0
 
 async def get_rerank_score(
-        prompt: str,
+        query_text: str,
         search_content: str,
         model: str = config.reranking_model_name,
         reranking_model_url: str = config.reranking_model_api_url,
         reranking_model_api_key: str = config.reranking_model_api_key,
 ) -> float:
-    """Contact a re-rank model and get a more precise score for the search content.
+    """Contact a re-rank model and get a more precise re-ranking score for the search content.
 
-    This function calls the /score API endpoint to calculate a new more accurate
+    This function calls the /rerank API endpoint to calculate a new more accurate
     score for the search content. First it chunks the search content to fit
     the context of the re-rank model, and then it calculates the score for each
     such a chunk. The final score is the maximum re-rank score out of all the
     chunks.
 
     Args:
-        prompt: User's prompt that the search content should be related to.
+        query_text: query text that the search content should be related to.
         search_content: Is a chunk retrieved from the vector database.
         model: Name of the model to use for re-ranking.
         reranking_model_url: URL of the re-rank model.
         reranking_model_api_key: API key for the re-rank model.
 
     Raises:
-        HTTPStatusError: If the response from the /score API endpoint is
+        HTTPStatusError: If the response from the /rerank API endpoint is
             not 200 status code.
     """
 
@@ -139,10 +139,9 @@ async def get_rerank_score(
 
     data = {
         "model": model,
-        "query": prompt,
+        "query": query_text,
         "documents": sub_chunks,
     }
-
     rerank_url = f"{reranking_model_url}/rerank"
     async with httpx.AsyncClient() as client:
         response = await client.post(rerank_url, headers=headers, json=data)

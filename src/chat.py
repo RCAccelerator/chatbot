@@ -221,14 +221,26 @@ async def print_debug_content(
         debug_step.output = debug_content
 
 
-def _build_search_content_from_history(message_history: ThreadMessages) -> str:
-    """Build string representation of messages from the history."""
+def _build_search_content(message_history: ThreadMessages,
+                          current_message: str,
+                          settings: dict) -> str:
+    """Build search text from the history and current message."""
     previous_message_content = ""
     if message_history:
         for message in message_history:
             if message['role'] == 'user':
                 previous_message_content += f"\n{message['content']}"
-    return previous_message_content
+
+    # Limit the size of the message content as this is passed as query to
+    # the reranking model. This is brute truncation, but can be improved
+    # when we handle message history better.
+    if settings['enable_rerank']:
+        max_text_len_from_history = (
+        config.reranking_model_max_context // 2 - len(
+            current_message)) - 1
+        return previous_message_content[
+            :max_text_len_from_history] + current_message
+    return previous_message_content + current_message
 
 
 async def handle_user_message( # pylint: disable=too-many-locals,too-many-statements
@@ -256,7 +268,9 @@ async def handle_user_message( # pylint: disable=too-many-locals,too-many-statem
         await resp.send()
         return
 
-    search_content = _build_search_content_from_history(message_history) + message.content
+    search_content = _build_search_content(message_history,
+                                           message.content,
+                                           settings)
 
     # Check message length
     is_valid_length, error_message = await check_message_length(

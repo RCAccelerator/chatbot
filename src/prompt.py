@@ -45,8 +45,8 @@ async def build_prompt(
 
     The full prompt consists out of these three parts:
         1. System prompt
-        2. Text representation of the data retrieved from vector database
-        3. User message
+        2. User message
+        3. Text representation of the data retrieved from vector database
 
     The sections #2 and #2 may repeat if history is enabled. If for whatever
     reason the full prompt exceeds the maximum context length of the generative
@@ -97,9 +97,14 @@ async def build_prompt(
         return is_error, full_prompt
 
 
-    # 2. Add search results into the conversations
-    full_user_message = config.prompt_header + "\n"
+    full_user_message = config.prompt_header
     full_prompt_len += len(full_user_message)
+
+    # 2. Add a user's message into the prompt
+    full_user_message += "\n" + user_message
+
+
+    # 3. Add search results into the conversations
     for res in search_results:
         search_result_chunk = search_result_to_str(res)
 
@@ -117,7 +122,7 @@ async def build_prompt(
                 text=search_result_chunk[:-trim_len]
             )
 
-            full_user_message += truncated_search_result
+            full_user_message += "\n" + truncated_search_result
             full_prompt_len += len(truncated_search_result)
 
             is_error = True
@@ -126,8 +131,6 @@ async def build_prompt(
         full_user_message += search_result_chunk
         full_prompt_len += len(search_result_chunk)
 
-    # 3. Add a user's message into the prompt
-    full_user_message += "\n" + user_message
     full_prompt.append(ChatCompletionUserMessageParam(
         role="user",
         content=full_user_message,
