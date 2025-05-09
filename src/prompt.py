@@ -51,7 +51,7 @@ async def build_prompt(
     The sections #2 and #3 may repeat if history is enabled (they are expected
     to be already part of the history_settings). If for whatever reason the full
     prompt exceeds the maximum context length of the generative model (set in
-    config.py), the new part #3 of the system prompt is truncated. The new user
+    config.py), the new part #3 of the full prompt is truncated. The new user
     message is always appended to the full prompt in its full length.
 
     Args:
