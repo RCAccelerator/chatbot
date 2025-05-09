@@ -29,6 +29,7 @@ class Config:
     embeddings_llm_max_context: int
     generative_model_max_context: int
     default_temperature: float
+    default_temperature_without_search_results: float
     default_max_tokens: int
     default_top_p: float
     default_n: int
@@ -87,7 +88,9 @@ class Config:
                 32000,
             )),
             default_temperature=float(
-                os.environ.get("DEFAULT_MODEL_TEMPERATURE", 0.7)),
+                os.environ.get("DEFAULT_MODEL_TEMPERATURE", 0.3)),
+            default_temperature_without_search_results=float(
+                os.environ.get("DEFAULT_MODEL_TEMPERATURE_WITHOUT_SEARCH_RESULTS", 0.7)),
             default_max_tokens=int(
                 os.environ.get("DEFAULT_MODEL_MAX_TOKENS", 1024)),
             default_top_p=float(

@@ -20,8 +20,10 @@ app = FastAPI(title="RCAccelerator API")
 
 class BaseModelSettings(BaseModel):
     """Base model with common settings for model configuration."""
-    similarity_threshold: float = Field(config.search_similarity_threshold, ge=-1.0, le=1.0)
-    temperature: float = Field(config.default_temperature, ge=0.0, le=1.0)
+    similarity_threshold: float = Field(
+        config.search_similarity_threshold, ge=-1.0, le=1.0)
+    temperature: float = Field(
+        config.default_temperature, ge=0.0, le=1.0)
     max_tokens: int = Field(config.default_max_tokens, gt=1, le=1024)
     generative_model_name: str = Field("")
     embeddings_model_name: str = Field("")

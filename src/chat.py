@@ -335,13 +335,17 @@ async def handle_user_message( # pylint: disable=too-many-locals,too-many-statem
 
         async with cl.Step(name="thinking and generating a response") as resp_step:
             # Process user message and get AI response
+            if search_results:
+                temperature = settings["temperature"]
+            else:
+                temperature = config.default_temperature_without_search_results
             is_error = await get_response(
                 full_prompt,
                 resp,
                 {
                     "model": settings["generative_model"],
                     "max_tokens": settings["max_tokens"],
-                    "temperature": settings["temperature"]
+                    "temperature": temperature
                 },
                 is_api=False,
                 stream_response=settings.get("stream", True),
@@ -403,6 +407,10 @@ async def handle_user_message_api( # pylint: disable=too-many-arguments
     except httpx.HTTPStatusError:
         response.content = "An error occurred while searching the vector database."
         return response
+
+    if not search_results:
+        generative_model_settings[
+            "temperature"] = config.default_temperature_without_search_results
 
     is_error_prompt, full_prompt = await build_prompt(
         search_results,
