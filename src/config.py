@@ -51,6 +51,8 @@ class Config:
     prompt_header: str
     welcome_message: str
     jira_formatting_syntax_prompt: str
+    chars_per_token_estimation: int
+    generative_model_max_context_percentage: float
 
     @classmethod
     def from_env(cls) -> 'Config':
@@ -131,8 +133,25 @@ class Config:
             # The maximum number of points we pass to the generative model after
             # reranking.
             rerank_top_n=int(os.environ.get("RERANK_TOP_N", 5)),
-        )
 
+            # The maximum percentage of the full context of the generative model
+            # that we can use. The idea is that we do not want to use the full
+            # available context to prevent decreased quality of the responses.
+            generative_model_max_context_percentage=float(os.environ.get(
+                "GENERATIVE_MODEL_MAX_CONTEXT_PERCENTAGE",
+                0.75,
+            )),
+
+            # The estimated number of characters per token we should use in our
+            # internal computations. For example, we use this value to estimate
+            # the maximum number of characters the generative model can process.
+            #
+            # On average, a single token corresponds to approximately 4 characters.
+            # Because logs often require more tokens to process, we estimate 3
+            # characters per token.
+            chars_per_token_estimation=int(os.environ.get(
+                "CHARS_PER_TOKEN_ESTIMATION", 3)),
+            )
 
 # Initialize the configuration
 config = Config.from_env()

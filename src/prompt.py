@@ -83,12 +83,10 @@ async def build_prompt(
 
     full_prompt_len += len(str(full_prompt))
 
-    # NOTE: On average, a single token corresponds to approximately 4 characters.
-    # Because logs often require more tokens to process, we estimate 3
-    # characters per token. Also, we do not want to use the full context
-    # of the model as trying to use the full context of the model might lead
-    # to decreased performance (0.75 constant).
-    approx_max_chars = config.generative_model_max_context * 3 * 0.75
+    # Calculate the maximum character limit estimation for the generative model.
+    approx_max_chars = (config.generative_model_max_context *
+                        config.generative_model_max_context_percentage *
+                        config.chars_per_token_estimation)
 
     # If no information was retrieved from the vector database, end the generation
     # of the prompt.
