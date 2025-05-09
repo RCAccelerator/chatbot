@@ -46,12 +46,13 @@ async def build_prompt(
     The full prompt consists out of these three parts:
         1. System prompt
         2. User message
-        3. Text representation of the data retrieved from vector database
+        3. Text representation of the data retrieved from a vector database
 
-    The sections #2 and #2 may repeat if history is enabled. If for whatever
-    reason the full prompt exceeds the maximum context length of the generative
-    model (set in config.py), the new part #2 of the system prompt is truncated.
-    The user message is always appended to the full prompt in its full length.
+    The sections #2 and #3 may repeat if history is enabled (they are expected
+    to be already part of the history_settings). If for whatever reason the full
+    prompt exceeds the maximum context length of the generative model (set in
+    config.py), the new part #3 of the system prompt is truncated. The new user
+    message is always appended to the full prompt in its full length.
 
     Args:
         search_results: A list of results obtained from the vector db
@@ -60,9 +61,11 @@ async def build_prompt(
         profile_name: The name of the profile for which to generate the prompt
 
     Returns:
-        List of messages that make up the full prompt. Each return value contains
-        at least one system prompt and user message. And indication whether an
-        error occurred during the process of building of the prompt.
+        tuple: A tuple containing two elements:
+            - List of messages that make up the full prompt. Each return value
+              contains at least one system prompt and user message.
+            - A bool value which indicates whether an error occurred during the
+              process of building of the prompt (e.g., too long prompt).
     """
     # 1. Build system prompt if it is not part of the history already
     is_error = False
