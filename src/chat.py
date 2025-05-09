@@ -310,6 +310,7 @@ async def handle_user_message( # pylint: disable=too-many-locals,too-many-statem
                 return
         await search_step.remove()
 
+        is_error_prompt = False
         async with cl.Step(name="building a prompt") as prompt_step:
             prompt_step.output = "Generating a full prompt on the system prompt, " \
                                  "user message, and search results..."
@@ -322,8 +323,10 @@ async def handle_user_message( # pylint: disable=too-many-locals,too-many-statem
                     message_history=message_history,
                 ),
             )
-            if is_error_prompt:
-                await cl.Message(content=constants.WARNING_MESSAGE_TRUNCATED_TEXT).send()
+
+        if is_error_prompt:
+            await cl.Message(content=constants.WARNING_MESSAGE_TRUNCATED_TEXT).send()
+
         await prompt_step.remove()
 
         if debug_mode:
