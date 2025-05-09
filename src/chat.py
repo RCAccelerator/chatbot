@@ -140,11 +140,9 @@ async def check_message_length(message_content: str) -> tuple[bool, str]:
         return False, "We've encountered an issue. Please try again later ..."
 
     if num_required_tokens > config.embeddings_llm_max_context:
-        # On average, a single token corresponds to approximately 4 characters.
-        # Because logs often require more tokens to process, we estimate 3
-        # characters per token.
+        # Calculate the maximum character limit estimation for the embedding model.
         approx_max_chars = round(
-            config.embeddings_llm_max_context * 3, -2)
+            config.embeddings_llm_max_context * config.chars_per_token_estimation, -2)
 
         error_message = (
             "⚠️ **Your input is too lengthy!**\n We can process inputs of up "
