@@ -12,15 +12,14 @@ from fastapi import Depends, FastAPI, HTTPException, Security
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, Field, HttpUrl
 
-from rca_accelerator_chatbot.constants import (
-    CI_LOGS_PROFILE, DOCS_PROFILE, RCA_FULL_PROFILE
-)
+from rca_accelerator_chatbot.constants import CI_LOGS_PROFILE, DOCS_PROFILE, RCA_FULL_PROFILE
 from rca_accelerator_chatbot.chat import handle_user_message_api
 from rca_accelerator_chatbot.config import config
 from rca_accelerator_chatbot.settings import ModelSettings
-from rca_accelerator_chatbot.generation import discover_generative_model_names
-from rca_accelerator_chatbot.embeddings import discover_embeddings_model_names
 from rca_accelerator_chatbot.auth import authentification
+from rca_accelerator_chatbot.models import (
+    gen_model_provider, embed_model_provider, init_model_providers
+)
 
 app = FastAPI(title="RCAccelerator API")
 
@@ -52,10 +51,14 @@ class RcaRequest(BaseModelSettings):
 async def validate_settings(request: BaseModelSettings) -> BaseModelSettings:
     """Validate the settings for any request.
     This function performs checks to ensure the API request is valid.
-    Some checks are performed asynchronously which is why we don't use
+    Some checks are performed asynchronously, which is why we don't use
     the built-in Pydantic validators.
     """
-    available_generative_models = await discover_generative_model_names()
+    # Make sure we pull the latest info about running models. Note that the responses
+    # are cached by the providers for a certain amount of time.
+    await init_model_providers()
+
+    available_generative_models = gen_model_provider.all_model_names
     if not request.generative_model_name:
         request.generative_model_name = available_generative_models[0]
     elif request.generative_model_name not in available_generative_models:
@@ -64,7 +67,7 @@ async def validate_settings(request: BaseModelSettings) -> BaseModelSettings:
             detail=f"Invalid generative model. Available: {available_generative_models}"
         )
 
-    available_embedding_models = await discover_embeddings_model_names()
+    available_embedding_models = embed_model_provider.all_model_names
     if not request.embeddings_model_name:
         request.embeddings_model_name = available_embedding_models[0]
     elif request.embeddings_model_name not in available_embedding_models:

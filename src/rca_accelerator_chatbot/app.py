@@ -9,8 +9,9 @@ from rca_accelerator_chatbot.config import config
 from rca_accelerator_chatbot import constants
 from rca_accelerator_chatbot.chat import handle_user_message
 from rca_accelerator_chatbot.auth import authentification
-from rca_accelerator_chatbot.generation import  discover_generative_model_names
-from rca_accelerator_chatbot.embeddings import discover_embeddings_model_names
+from rca_accelerator_chatbot.models import (
+    init_model_providers, gen_model_provider, embed_model_provider, rerank_model_provider
+)
 
 
 @cl.set_chat_profiles
@@ -63,7 +64,6 @@ async def chat_profile() -> list[cl.ChatProfile]:
         )
     ]
 
-
 @cl.on_chat_start
 async def init_chat():
     """
@@ -73,17 +73,18 @@ async def init_chat():
     """
 
     cl.user_session.set("counter", 0)
+    await init_model_providers()
     await setup_chat_settings()
-
 
 async def setup_chat_settings():
     """
     Set up the chat settings interface with model selection,
     temperature, token limits, and other configuration options.
     """
-    generative_model_names = await discover_generative_model_names()
-    embeddings_model_names = await discover_embeddings_model_names()
-    if not generative_model_names or not embeddings_model_names:
+    generative_model_names = gen_model_provider.all_model_names
+    embeddings_model_names = embed_model_provider.all_model_names
+    rerank_model_names = rerank_model_provider.all_model_names
+    if not generative_model_names or not embeddings_model_names or not rerank_model_names:
         await cl.Message(
             content="No generative or embeddings model found. "
                     "Please check your configuration."
@@ -103,6 +104,12 @@ async def setup_chat_settings():
                 label="Embeddings LLM Model",
                 values=embeddings_model_names,
                 initial_index=0,
+            ),
+            Select(
+                id="rerank_model",
+                label="Re-rank model",
+                values=rerank_model_names,
+                initial_index=0
             ),
             Slider(
                 id="temperature",
