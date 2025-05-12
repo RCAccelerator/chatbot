@@ -20,13 +20,15 @@ The Swagger interface (available at `https://myserver.com/docs`) can be used to 
 
 Processes a single user message along with various model and search parameters, then returns a generated response along with any relevant resource URLs.
 
+**Authentication Required**: Include the token in the Authorization header.
+
 #### Request Body
 
 JSON object matching the schema:
 
 | Field                   | Type    | Constraints                                                     | Description                                                                                                                                                 |
 |-------------------------|---------|-----------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `content`               | string  | Required                                                        | The user’s message or prompt content.                                                                                                                       |
+| `content`               | string  | Required                                                        | The user's message or prompt content.                                                                                                                       |
 | `similarity_threshold`  | float   | Default: `config.search_similarity_threshold` Range: (0, 1]     | Filter for relevant documents by cosine similarity. A higher threshold yields fewer but more precise documents, while a lower threshold is more inclusive.  |
 | `temperature`           | float   | Default: `config.default_temperature` Range: [0.1, 1.0]         | Controls the variability in generated responses. A value closer to 1.0 produces more creative/flexible answers; near 0.1 yields more deterministic results. |
 | `max_tokens`            | int     | Default: `config.default_max_tokens` Range: [1, 1024]           | Limits the maximum length of the generated response.                                                                                                        |
@@ -39,6 +41,7 @@ JSON object matching the schema:
 ```json
 POST /prompt
 Content-Type: application/json
+Authorization: Bearer 6e63fb8d-93a2-4c55-8694-c0e76a4a7233
 
 {
   "content": "Why did my CI job fail?",
@@ -94,6 +97,7 @@ Content-Type: application/json
 ```bash
 curl -X POST https://my-server.com/prompt \
     -H "Content-Type: application/json" \
+    -H "Authorization: Bearer 6e63fb8d-93a2-4c55-8694-c0e76a4a7233" \
     -d '{
       "content": "What caused my test job to fail on environment X?",
       "similarity_threshold": 0.8,
@@ -121,6 +125,8 @@ Response:
 
 Extracts Root Cause Analyses (RCAs) from a Tempest test report URL. This endpoint fetches the HTML report, parses out failed tests and their tracebacks, and generates an RCA for each unique test failure.
 
+**Authentication Required**: Include the token in the Authorization header.
+
 #### Request Body
 
 JSON object matching the schema:
@@ -134,6 +140,7 @@ JSON object matching the schema:
 ```json
 POST /rca-from-tempest
 Content-Type: application/json
+Authorization: Bearer 6e63fb8d-93a2-4c55-8694-c0e76a4a7233
 
 {
   "tempest_report_url": "https://storage.example.com/ci-logs/tempest-report.html"
@@ -180,6 +187,7 @@ Content-Type: application/json
 ```bash
 curl -X POST https://my-server.com/rca-from-tempest \
     -H "Content-Type: application/json" \
+    -H "Authorization: Bearer 6e63fb8d-93a2-4c55-8694-c0e76a4a7233" \
     -d '{
       "tempest_report_url": "https://storage.example.com/ci-logs/tempest-report.html"
     }'

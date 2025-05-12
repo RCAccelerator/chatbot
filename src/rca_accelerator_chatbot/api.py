@@ -2,13 +2,14 @@
 FastAPI endpoints for the RCAccelerator API.
 """
 import asyncio
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 import re
 
 import httpx
 from httpx_gssapi import HTTPSPNEGOAuth, OPTIONAL
 from bs4 import BeautifulSoup
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Security
+from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, Field, HttpUrl
 
 from rca_accelerator_chatbot.constants import (
@@ -19,8 +20,11 @@ from rca_accelerator_chatbot.config import config
 from rca_accelerator_chatbot.settings import ModelSettings
 from rca_accelerator_chatbot.generation import discover_generative_model_names
 from rca_accelerator_chatbot.embeddings import discover_embeddings_model_names
+from rca_accelerator_chatbot.auth import authentification
 
 app = FastAPI(title="RCAccelerator API")
+
+api_key_header = APIKeyHeader(name="Authorization", auto_error=False)
 
 class BaseModelSettings(BaseModel):
     """Base model with common settings for model configuration."""
@@ -87,6 +91,41 @@ async def validate_chat_settings(request: ChatRequest) -> ChatRequest:
 async def validate_rca_settings(request: RcaRequest) -> RcaRequest:
     """Type-specific validation for RcaRequest."""
     return await validate_settings(request)
+
+
+async def get_current_user(authorization: Optional[str] = Security(api_key_header)) -> str:
+    """
+    Validate the authorization token and return the username.
+    This function is used as a dependency for protected endpoints.
+    """
+    if not authorization:
+        raise HTTPException(
+            status_code=401,
+            detail="Authorization header is missing",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # Extract the token from the Authorization header
+    token_parts = authorization.split()
+    if len(token_parts) != 2 or token_parts[0].lower() != "bearer":
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid authorization header format. Use 'Bearer {token}'",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    token = token_parts[1]
+
+    # Verify the token
+    username = authentification.verify_token(token)
+    if not username:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or expired token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    return username
 
 
 class RcaResponseItem(BaseModel):
@@ -167,10 +206,12 @@ async def fetch_and_parse_tempest_report(url: str) -> List[Dict[str, str]]:
 
 @app.post("/prompt")
 async def process_prompt(
-        message_data: ChatRequest = Depends(validate_chat_settings)
+        message_data: ChatRequest = Depends(validate_chat_settings),
+        _: str = Depends(get_current_user)
     ) -> Dict[str, Any]:
     """
     FastAPI endpoint that processes a message and returns an answer.
+    Authentication required.
     """
     generative_model_settings: ModelSettings = {
         "model": message_data.generative_model_name,
@@ -198,10 +239,12 @@ async def process_prompt(
 
 @app.post("/rca-from-tempest", response_model=List[RcaResponseItem])
 async def process_rca(
-        request: RcaRequest = Depends(validate_rca_settings)
+        request: RcaRequest = Depends(validate_rca_settings),
+        _: str = Depends(get_current_user)
     ) -> List[RcaResponseItem]:
     """
     FastAPI endpoint that extracts Root Cause Analyses (RCAs) from a Tempest report URL.
+    Authentication required.
     """
     traceback_items = await fetch_and_parse_tempest_report(str(request.tempest_report_url))
 
