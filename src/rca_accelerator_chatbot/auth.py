@@ -6,7 +6,6 @@ from abc import ABC, abstractmethod
 from sqlalchemy import create_engine, MetaData, Table
 from sqlalchemy.orm import sessionmaker
 from bcrypt import checkpw
-import chainlit as cl
 
 from rca_accelerator_chatbot.config import config
 
@@ -16,7 +15,7 @@ class Authentification(ABC):
     """Abstract base class for user authentication."""
 
     @abstractmethod
-    def authenticate(self, username: str, password: str) -> bool:
+    def authenticate(self, username: str, password: str) -> str | None:
         """Authenticate a user by username and password."""
         raise NotImplementedError
 
@@ -39,7 +38,7 @@ class DatabaseAuthentification(Authentification):
         self.engine = create_engine(self.database_url)
         self.session = sessionmaker(bind=self.engine)
 
-    def authenticate(self, username: str, password: str) -> cl.User | None:
+    def authenticate(self, username: str, password: str) -> str | None:
         """
         Authenticate a user by checking the username and password
         against the database.
@@ -47,8 +46,7 @@ class DatabaseAuthentification(Authentification):
             username: Username of the user
             password: Password of the user
         Returns:
-            cl.User: User object if authentication is successful,
-                      None otherwise
+            str: Username if authentication is successful, None otherwise
         """
         auth_ok = False
 
@@ -67,11 +65,7 @@ class DatabaseAuthentification(Authentification):
             auth_session.close()
 
         if auth_ok:
-            cl.logger.info("User %s authenticated successfully.", username)
-            return cl.User(
-                identifier=username,
-            )
-        cl.logger.error("Authentication failed for user %s.", username)
+            return username
         return None
 
 

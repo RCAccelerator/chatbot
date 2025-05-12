@@ -157,9 +157,15 @@ async def main(message: cl.Message):
 async def auth_callback(username: str, password: str):
     """
     Authentication callback to validate user credentials.
-    Returns True if authentication is successful, False otherwise.
+    Returns a User object if authentication is successful, None otherwise.
     """
-    return authentification.authenticate(username, password)
+    authenticated_username = authentification.authenticate(username, password)
+    if authenticated_username:
+        cl.logger.info("User %s authenticated successfully.", authenticated_username)
+        return cl.User(identifier=authenticated_username)
+
+    cl.logger.error("Authentication failed for user %s.", username)
+    return None
 
 
 @cl.on_chat_resume
