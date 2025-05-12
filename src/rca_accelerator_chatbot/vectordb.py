@@ -5,7 +5,7 @@ import chainlit as cl
 from qdrant_client import QdrantClient
 from qdrant_client.http.exceptions import ApiException
 
-from config import config
+from rca_accelerator_chatbot.config import config
 
 
 class VectorStore:

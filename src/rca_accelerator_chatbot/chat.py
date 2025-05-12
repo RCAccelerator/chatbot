@@ -5,21 +5,21 @@ from chainlit.context import ChainlitContextException
 import httpx
 from openai.types.chat import ChatCompletionAssistantMessageParam
 
-import constants
-from prompt import build_prompt
-from vectordb import vector_store
-from generation import get_response
-from embeddings import (
+from rca_accelerator_chatbot import constants
+from rca_accelerator_chatbot.prompt import build_prompt
+from rca_accelerator_chatbot.vectordb import vector_store
+from rca_accelerator_chatbot.generation import get_response
+from rca_accelerator_chatbot.embeddings import (
     get_num_tokens, generate_embedding,
     get_rerank_score, get_default_embeddings_model_name
 )
-from settings import ModelSettings, HistorySettings, ThreadMessages
-from config import config
-from constants import (
+from rca_accelerator_chatbot.settings import ModelSettings, HistorySettings, ThreadMessages
+from rca_accelerator_chatbot.config import config
+from rca_accelerator_chatbot.constants import (
     DOCS_PROFILE,
     RCA_FULL_PROFILE,
     TEXT_UPLOAD_TEMPLATE,
-    )
+)
 
 
 # Create mock message and response objects

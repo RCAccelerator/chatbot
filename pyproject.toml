@@ -2,6 +2,7 @@
 name = "rca-accelerator-chatbot"
 version = "0.1.0"
 description = "Useful chatbot that can be used to do RCA of CI errors."
+readme = "README.md"
 authors = []
 dependencies = [
     "openai==1.68.2",
@@ -19,6 +20,7 @@ dependencies = [
     "beautifulsoup4>=4.13.4",
 ]
 requires-python = "==3.12.*"
+license = "Apache-2.0"
 
 [tool.pdm.dev-dependencies]
 dev = [
@@ -27,3 +29,19 @@ dev = [
     "fastapi==0.115.8",
     "ruff==0.9.0",
 ]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.package-data]
+rca_accelerator_chatbot = ["data/**", "data/.chainlit/**"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project.scripts]
+rca_accelerator_chatbot = "rca_accelerator_chatbot.main:main"

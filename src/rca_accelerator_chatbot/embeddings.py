@@ -7,8 +7,8 @@ import chainlit as cl
 import httpx
 from openai import AsyncOpenAI, OpenAIError
 
-from config import config
-from generation import extract_model_ids
+from rca_accelerator_chatbot.config import config
+from rca_accelerator_chatbot.generation import extract_model_ids
 
 # Initialize embedding LLM client
 emb_llm = AsyncOpenAI(

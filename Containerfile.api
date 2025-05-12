@@ -9,12 +9,14 @@ RUN dnf install -y krb5-workstation krb5-libs
 WORKDIR /app
 RUN chown -R chatuser:chatgroup /app
 
-COPY src/ .
-COPY pdm.lock pyproject.toml Makefile api-entrypoint.sh .
+COPY src/ src/
+COPY pdm.lock pyproject.toml Makefile api-entrypoint.sh LICENSE README.md .
 RUN make install-pdm install-global
 RUN chmod +x api-entrypoint.sh
 
 USER chatuser
 EXPOSE 8001
+
+RUN cp -r src/rca_accelerator_chatbot/data/.chainlit .
 
 ENTRYPOINT ["/app/api-entrypoint.sh"]
