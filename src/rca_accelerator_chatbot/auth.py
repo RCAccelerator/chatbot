@@ -8,7 +8,7 @@ from sqlalchemy.orm import sessionmaker
 from bcrypt import checkpw
 import chainlit as cl
 
-from config import config
+from rca_accelerator_chatbot.config import config
 
 
 # pylint: disable=too-few-public-methods

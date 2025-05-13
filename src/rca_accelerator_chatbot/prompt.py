@@ -4,12 +4,12 @@ from openai.types.chat import (
     ChatCompletionSystemMessageParam,
 )
 
-from config import config
-from constants import (
+from rca_accelerator_chatbot.config import config
+from rca_accelerator_chatbot.constants import (
     NO_RESULTS_FOUND, SEARCH_RESULTS_TEMPLATE, SEARCH_RESULT_TRUNCATED_CHUNK
 )
-from settings import HistorySettings, ThreadMessages
-from generation import get_system_prompt_per_profile
+from rca_accelerator_chatbot.settings import HistorySettings, ThreadMessages
+from rca_accelerator_chatbot.generation import get_system_prompt_per_profile
 
 
 def search_result_to_str(search_result: dict) -> str:

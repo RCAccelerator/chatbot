@@ -5,12 +5,12 @@ with RAG capabilities.
 import chainlit as cl
 from chainlit.input_widget import Select, Switch, Slider
 
-from config import config
-import constants
-from chat import handle_user_message
-from auth import authentification
-from generation import discover_generative_model_names
-from embeddings import discover_embeddings_model_names
+from rca_accelerator_chatbot.config import config
+from rca_accelerator_chatbot import constants
+from rca_accelerator_chatbot.chat import handle_user_message
+from rca_accelerator_chatbot.auth import authentification
+from rca_accelerator_chatbot.generation import  discover_generative_model_names
+from rca_accelerator_chatbot.embeddings import discover_embeddings_model_names
 
 
 @cl.set_chat_profiles

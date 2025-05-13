@@ -4,17 +4,21 @@ FastAPI endpoints for the RCAccelerator API.
 import asyncio
 from typing import Dict, Any, List
 import re
+
 import httpx
 from httpx_gssapi import HTTPSPNEGOAuth, OPTIONAL
 from bs4 import BeautifulSoup
 from fastapi import Depends, FastAPI, HTTPException
 from pydantic import BaseModel, Field, HttpUrl
-from constants import CI_LOGS_PROFILE, DOCS_PROFILE, RCA_FULL_PROFILE
-from chat import handle_user_message_api
-from config import config
-from settings import ModelSettings
-from generation import discover_generative_model_names
-from embeddings import discover_embeddings_model_names
+
+from rca_accelerator_chatbot.constants import (
+    CI_LOGS_PROFILE, DOCS_PROFILE, RCA_FULL_PROFILE
+)
+from rca_accelerator_chatbot.chat import handle_user_message_api
+from rca_accelerator_chatbot.config import config
+from rca_accelerator_chatbot.settings import ModelSettings
+from rca_accelerator_chatbot.generation import discover_generative_model_names
+from rca_accelerator_chatbot.embeddings import discover_embeddings_model_names
 
 app = FastAPI(title="RCAccelerator API")
 

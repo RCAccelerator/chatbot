@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 import os
 
-from constants import (
+from rca_accelerator_chatbot.constants import (
     CI_LOGS_SYSTEM_PROMPT,
     DOCS_SYSTEM_PROMPT,
     WELCOME_MESSAGE,

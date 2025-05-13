@@ -3,9 +3,11 @@
 import chainlit as cl
 from openai import AsyncOpenAI, OpenAIError
 
-from settings import ModelSettings, ThreadMessages
-from config import config
-from constants import DOCS_PROFILE, RCA_FULL_PROFILE, CI_LOGS_PROFILE
+from rca_accelerator_chatbot.settings import ModelSettings, ThreadMessages
+from rca_accelerator_chatbot.config import config
+from rca_accelerator_chatbot.constants import (
+    DOCS_PROFILE, RCA_FULL_PROFILE, CI_LOGS_PROFILE
+)
 
 # Initialize generative LLM client
 gen_llm = AsyncOpenAI(
