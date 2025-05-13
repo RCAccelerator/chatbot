@@ -1,8 +1,6 @@
 """Constants we don't need to expose to the user.
 """
 
-SEARCH_INSTRUCTION = "Represent this sentence for searching relevant passages: "  # noqa: E501
-
 CI_LOGS_SYSTEM_PROMPT = """
 # Purpose
 You are a Continuous Integration (CI) assistant who helps with CI failures.

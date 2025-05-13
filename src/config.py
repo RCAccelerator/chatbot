@@ -8,7 +8,6 @@ from constants import (
     DOCS_SYSTEM_PROMPT,
     WELCOME_MESSAGE,
     CONTEXT_HEADER,
-    SEARCH_INSTRUCTION,
     JIRA_FORMATTING_SYNTAX,
 )
 
@@ -42,7 +41,6 @@ class Config:
     vectordb_collection_name_documentation: str
     vectordb_collection_name_ci_logs: str
     vectordb_collection_name_solutions: str
-    search_instruction: str
     search_similarity_threshold: float
     search_top_n: int
     rerank_top_n: int
@@ -115,8 +113,6 @@ class Config:
                 "VECTORDB_COLLECTION_NAME_CI_LOGS", 'rca-ci'),
             vectordb_collection_name_solutions=os.environ.get(
                 "VECTORDB_COLLECTION_NAME_SOLUTIONS", 'rca-solutions'),
-            search_instruction=os.environ.get(
-                "SEARCH_INSTRUCTION", SEARCH_INSTRUCTION),
             search_similarity_threshold=float(
                 os.environ.get("SEARCH_SIMILARITY_THRESHOLD", 0.8)),
             ci_logs_system_prompt=os.environ.get("CI_LOGS_SYSTEM_PROMPT", CI_LOGS_SYSTEM_PROMPT),
