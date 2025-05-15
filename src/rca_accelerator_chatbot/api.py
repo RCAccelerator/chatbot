@@ -18,7 +18,7 @@ from rca_accelerator_chatbot.config import config
 from rca_accelerator_chatbot.settings import ModelSettings
 from rca_accelerator_chatbot.auth import authentification
 from rca_accelerator_chatbot.models import (
-    gen_model_provider, embed_model_provider, init_model_providers
+    gen_model_provider, embed_model_provider, rerank_model_provider, init_model_providers
 )
 
 app = FastAPI(title="RCAccelerator API")
@@ -34,6 +34,7 @@ class BaseModelSettings(BaseModel):
     max_tokens: int = Field(config.default_max_tokens, gt=1, le=1024)
     generative_model_name: str = Field("")
     embeddings_model_name: str = Field("")
+    rerank_model_name: str = Field("")
     profile_name: str = Field(CI_LOGS_PROFILE)
     enable_rerank: bool = Field(config.enable_rerank)
 
@@ -74,6 +75,15 @@ async def validate_settings(request: BaseModelSettings) -> BaseModelSettings:
         raise HTTPException(
             status_code=400,
             detail=f"Invalid embeddings model. Available: {available_embedding_models}"
+        )
+
+    available_rerank_models = rerank_model_provider.all_model_names
+    if not request.rerank_model_name:
+        request.rerank_model_name = available_rerank_models[0]
+    elif request.rerank_model_name not in available_rerank_models:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid rerank model. Available: {available_rerank_models}"
         )
 
     if request.profile_name not in [CI_LOGS_PROFILE, DOCS_PROFILE, RCA_FULL_PROFILE]:
@@ -224,12 +234,16 @@ async def process_prompt(
     embeddings_model_settings: ModelSettings = {
         "model": message_data.embeddings_model_name,
     }
+    rerank_model_settings: ModelSettings = {
+        "model": message_data.rerank_model_name,
+    }
 
     response = await handle_user_message_api(
         message_data.content,
         message_data.similarity_threshold,
         generative_model_settings,
         embeddings_model_settings,
+        rerank_model_settings,
         message_data.profile_name,
         message_data.enable_rerank,
         )
@@ -263,6 +277,9 @@ async def process_rca(
     embeddings_model_settings: ModelSettings = {
         "model": request.embeddings_model_name,
     }
+    rerank_model_settings: ModelSettings = {
+        "model": request.rerank_model_name,
+    }
 
     unique_items = {}
     for item in traceback_items:
@@ -278,6 +295,7 @@ async def process_rca(
             similarity_threshold=request.similarity_threshold,
             generative_model_settings=generative_model_settings,
             embeddings_model_settings=embeddings_model_settings,
+            rerank_model_settings=rerank_model_settings,
             profile_name=request.profile_name,
             enable_rerank=request.enable_rerank,
         )
