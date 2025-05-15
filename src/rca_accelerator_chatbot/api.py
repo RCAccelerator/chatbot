@@ -175,8 +175,9 @@ def _extract_test_name(test_name_part: str) -> str:
     return test_name
 
 
-async def fetch_and_parse_tempest_report(url: str) -> List[Dict[str, str]]:
-    """Fetches and parses the Tempest HTML report to extract test names and tracebacks."""
+async def fetch_and_parse_tempest_report(url: str) -> List[Dict[str, str]]: # pylint: disable=too-many-locals
+    """Fetches and parses the Tempest HTML report to extract test names
+    and the last traceback for each failed test."""
     async with httpx.AsyncClient(verify=False, follow_redirects=True) as client:
         try:
             response = await client.get(url, auth=HTTPSPNEGOAuth(mutual_authentication=OPTIONAL))
@@ -202,14 +203,20 @@ async def fetch_and_parse_tempest_report(url: str) -> List[Dict[str, str]]:
             test_name_part = row_text[:traceback_start_index].strip()
             test_name = _extract_test_name(test_name_part)
 
-            traceback_text = row_text[traceback_start_index:]
-            end_marker_index = traceback_text.find("}}}")
-            if end_marker_index != -1:
-                traceback_text = traceback_text[:end_marker_index].strip()
-            else:
-                traceback_text = traceback_text.strip()
+            tb_marker = "Traceback (most recent call last):"
+            traceback_pattern = re.compile(
+                # Match from one tb_marker to the next (non-greedy), or to end of string
+                f"{re.escape(tb_marker)}.*?(?={re.escape(tb_marker)}|$)",
+                re.DOTALL
+            )
 
-            results.append({"test_name": test_name, "traceback": traceback_text})
+            traceback_parts = traceback_pattern.findall(row_text[traceback_start_index:])
+            if traceback_parts:
+                last_traceback = traceback_parts[-1].strip()
+                end_marker_index = last_traceback.find("}}}")
+                if end_marker_index != -1:
+                    last_traceback = last_traceback[:end_marker_index].strip()
+                results.append({"test_name": test_name, "traceback": last_traceback})
 
     if not results:
         pass
