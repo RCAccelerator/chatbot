@@ -330,6 +330,7 @@ async def handle_user_message_api( # pylint: disable=too-many-arguments
     similarity_threshold: float,
     generative_model_settings: ModelSettings,
     embeddings_model_settings: ModelSettings,
+    rerank_model_settings: ModelSettings,
     profile_name: str,
     enable_rerank: bool = True,
     ) -> MockMessage:
@@ -362,6 +363,9 @@ async def handle_user_message_api( # pylint: disable=too-many-arguments
             settings={
                 "enable_rerank": enable_rerank,
                 "rerank_top_n": config.rerank_top_n,
+                "rerank_model": rerank_model_settings["model"],
+                "generative_model": generative_model_settings["model"],
+                "embeddings_model": embeddings_model_settings["model"],
             },
         )
     except httpx.HTTPStatusError:
