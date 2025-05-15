@@ -1,8 +1,9 @@
 """Handler for chat messages and responses."""
 from dataclasses import dataclass
-import chainlit as cl
-import httpx
+
 from openai.types.chat import ChatCompletionAssistantMessageParam
+import httpx
+import chainlit as cl
 
 from rca_accelerator_chatbot import constants
 from rca_accelerator_chatbot.prompt import build_prompt

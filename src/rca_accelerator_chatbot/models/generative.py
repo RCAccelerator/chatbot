@@ -1,6 +1,6 @@
 """Provider for the generative model."""
-import chainlit as cl
 from openai import OpenAIError
+import chainlit as cl
 
 from rca_accelerator_chatbot.settings import ModelSettings, ThreadMessages
 from rca_accelerator_chatbot.config import config

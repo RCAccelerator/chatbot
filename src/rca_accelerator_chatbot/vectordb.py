@@ -1,9 +1,10 @@
 """Vector database client for RAG operations."""
 
 from typing import List
-import chainlit as cl
+
 from qdrant_client import QdrantClient
 from qdrant_client.http.exceptions import ApiException
+import chainlit as cl
 
 from rca_accelerator_chatbot.config import config
 
