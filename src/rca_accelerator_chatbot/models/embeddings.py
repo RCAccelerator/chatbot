@@ -1,7 +1,7 @@
 """Provider for the embedding model."""
 
-import chainlit as cl
 from openai import OpenAIError
+import chainlit as cl
 
 from rca_accelerator_chatbot.config import config
 from rca_accelerator_chatbot.models.model import ModelProvider
