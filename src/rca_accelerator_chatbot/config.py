@@ -19,14 +19,10 @@ class Config:
     generation_llm_api_url: str
     generation_llm_api_key: str
     enable_rerank: bool
-    reranking_model_name: str
     reranking_model_api_key: str
     reranking_model_api_url: str
-    reranking_model_max_context: int
     embeddings_llm_api_url: str
     embeddings_llm_api_key: str
-    embeddings_llm_max_context: int
-    generative_model_max_context: int
     default_temperature: float
     default_temperature_without_search_results: float
     default_max_tokens: int
@@ -62,31 +58,16 @@ class Config:
                 "GENERATION_LLM_API_KEY", ""),
             enable_rerank=os.environ.get(
                 "ENABLE_RERANK", "true").lower() == "true",
-            reranking_model_name=os.environ.get(
-                "RERANKING_MODEL_NAME", "BAAI/bge-reranker-v2-m3"
-            ),
             reranking_model_api_url=os.environ.get(
                 "RERANKING_MODEL_API_URL", "http://localhost:8001/v1"
             ),
             reranking_model_api_key=os.environ.get(
                 "RERANKING_MODEL_API_KEY", ""
             ),
-            reranking_model_max_context=int(os.environ.get(
-                "RERANKING_MODEL_MAX_CONTEXT",
-                8192,
-            )),
             embeddings_llm_api_url=os.environ.get(
                 "EMBEDDINGS_LLM_API_URL", "http://localhost:8000/v1"),
             embeddings_llm_api_key=os.environ.get(
                 "EMBEDDINGS_LLM_API_KEY", ""),
-            embeddings_llm_max_context=int(os.environ.get(
-                "EMBEDDINGS_LLM_MAX_CONTEXT",
-                8192,
-            )),
-            generative_model_max_context=int(os.environ.get(
-                "GENERATIVE_MODEL_MAX_CONTEXT",
-                32000,
-            )),
             default_temperature=float(
                 os.environ.get("DEFAULT_MODEL_TEMPERATURE", 0.3)),
             default_temperature_without_search_results=float(

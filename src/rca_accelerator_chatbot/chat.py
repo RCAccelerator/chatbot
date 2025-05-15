@@ -1,20 +1,17 @@
 """Handler for chat messages and responses."""
 from dataclasses import dataclass
 import chainlit as cl
-from chainlit.context import ChainlitContextException
 import httpx
 from openai.types.chat import ChatCompletionAssistantMessageParam
 
 from rca_accelerator_chatbot import constants
 from rca_accelerator_chatbot.prompt import build_prompt
 from rca_accelerator_chatbot.vectordb import vector_store
-from rca_accelerator_chatbot.generation import get_response
-from rca_accelerator_chatbot.embeddings import (
-    get_num_tokens, generate_embedding,
-    get_rerank_score, get_default_embeddings_model_name
-)
 from rca_accelerator_chatbot.settings import ModelSettings, HistorySettings, ThreadMessages
 from rca_accelerator_chatbot.config import config
+from rca_accelerator_chatbot.models import (
+    gen_model_provider, embed_model_provider, rerank_model_provider
+)
 from rca_accelerator_chatbot.constants import (
     DOCS_PROFILE,
     RCA_FULL_PROFILE,
@@ -56,7 +53,9 @@ async def perform_multi_collection_search(
          collections: A list of collections to search.
          settings: The settings user provided through the UI.
     """
-    embedding = await generate_embedding(message_content, embeddings_model_name)
+    embedding = await embed_model_provider.generate_embedding(
+        message_content, embeddings_model_name
+    )
     if embedding is None:
         return []
 
@@ -69,7 +68,9 @@ async def perform_multi_collection_search(
         for r in results:
             r['collection'] = collection
             if settings['enable_rerank']:
-                r['rerank_score'] = await get_rerank_score(message_content, r['text'])
+                r['rerank_score'] = await rerank_model_provider.get_rerank_score(
+                    message_content, r['text'], settings["rerank_model"]
+                )
             else:
                 r['rerank_score'] = None
 
@@ -119,49 +120,6 @@ def update_msg_count():
     counter += 1
     cl.user_session.set("counter", counter)
 
-
-async def check_message_length(message_content: str) -> tuple[bool, str]:
-    """
-    Check if the message content exceeds the token limit.
-
-    Args:
-        message_content: The content to check
-
-    Returns:
-        A tuple containing:
-        - bool: True if the message is within length limits, False otherwise
-        - str: Error message if the length check fails, empty string otherwise
-    """
-    try:
-        num_required_tokens = await get_num_tokens(message_content,
-                                                   await get_embeddings_model_name())
-    except httpx.HTTPStatusError as e:
-        cl.logger.error(e)
-        return False, "We've encountered an issue. Please try again later ..."
-
-    if num_required_tokens > config.embeddings_llm_max_context:
-        # Calculate the maximum character limit estimation for the embedding model.
-        approx_max_chars = round(
-            config.embeddings_llm_max_context * config.chars_per_token_estimation, -2)
-
-        error_message = (
-            "⚠️ **Your input is too lengthy!**\n We can process inputs of up "
-            f"to approximately {approx_max_chars} characters. The exact limit "
-            "may vary depending on the input type. For instance, plain text "
-            "inputs can be longer compared to logs or structured data "
-            "containing special characters (e.g., `[`, `]`, `:`, etc.).\n\n"
-            "To proceed, please:\n"
-            "  - Focus on including only the most relevant details, and\n"
-            "  - Shorten your input if possible."
-            " \n\n"
-            "To let you continue, we will reset the conversation history.\n"
-            "Please start over with a shorter input."
-        )
-        return False, error_message
-
-    return True, ""
-
-
 async def print_debug_content(
         settings: dict,
         search_content: str,
@@ -192,8 +150,9 @@ async def print_debug_content(
     )
 
     # Display the number of tokens in the search content
-    num_t = await get_num_tokens(search_content,
-                                 await get_embeddings_model_name())
+    num_t = await embed_model_provider.get_num_tokens(
+        search_content, settings["embeddings_model"]
+    )
     debug_content += f"**Number of tokens in search content:** {num_t}\n\n"
 
     # Display vector DB debug information if debug mode is enabled
@@ -229,13 +188,13 @@ def _build_search_content(message_history: ThreadMessages,
             if message['role'] == 'user':
                 previous_message_content += f"\n{message['content']}"
 
-    # Limit the size of the message content as this is passed as query to
-    # the reranking model. This is brute truncation, but can be improved
+    # Limit the size of the message content as this is passed as a query to
+    # the reranking model. This is brute truncation but can be improved
     # when we handle message history better.
     if settings['enable_rerank']:
         max_text_len_from_history = (
-        config.reranking_model_max_context // 2 - len(
-            current_message)) - 1
+            rerank_model_provider.get_context_size(settings["rerank_model"]) // 2
+            - len(current_message)) - 1
         return previous_message_content[
             :max_text_len_from_history] + current_message
     return previous_message_content + current_message
@@ -271,8 +230,8 @@ async def handle_user_message( # pylint: disable=too-many-locals,too-many-statem
                                            settings)
 
     # Check message length
-    is_valid_length, error_message = await check_message_length(
-        search_content)
+    is_valid_length, error_message = await embed_model_provider.check_message_length(
+        search_content, settings["embeddings_model"])
     if not is_valid_length:
         resp.content = error_message
         # Reset message history to let the user try again
@@ -296,7 +255,7 @@ async def handle_user_message( # pylint: disable=too-many-locals,too-many-statem
             try:
                 search_results = await perform_multi_collection_search(
                     search_content,
-                    await get_embeddings_model_name(),
+                    settings["embeddings_model"],
                     get_similarity_threshold(),
                     collections,
                     settings,
@@ -320,6 +279,7 @@ async def handle_user_message( # pylint: disable=too-many-locals,too-many-statem
                     keep_history=settings["keep_history"],
                     message_history=message_history,
                 ),
+                settings["generative_model"],
             )
 
         if is_error_prompt:
@@ -337,7 +297,7 @@ async def handle_user_message( # pylint: disable=too-many-locals,too-many-statem
                 temperature = settings["temperature"]
             else:
                 temperature = config.default_temperature_without_search_results
-            is_error = await get_response(
+            is_error = await gen_model_provider.get_response(
                 full_prompt,
                 resp,
                 {
@@ -379,7 +339,9 @@ async def handle_user_message_api( # pylint: disable=too-many-arguments
     response = MockMessage(content="", urls=[])
 
     # Check message length
-    is_valid_length, error_message = await check_message_length(message_content)
+    is_valid_length, error_message = await embed_model_provider.check_message_length(
+        message_content, embeddings_model_settings["model"]
+    )
     if not is_valid_length:
         response.content = error_message
         return response
@@ -418,9 +380,10 @@ async def handle_user_message_api( # pylint: disable=too-many-arguments
             keep_history=False,
             message_history=[],
         ),
+        generative_model_settings["model"],
     )
     # Process user message and get AI response
-    is_error = await get_response(
+    is_error = await gen_model_provider.get_response(
         full_prompt,
         response,
         generative_model_settings,
@@ -454,14 +417,6 @@ def get_similarity_threshold() -> float:
 
     # If threshold is above 1, cap it at 1
     return min(threshold, 1.0)
-
-async def get_embeddings_model_name() -> str:
-    """Get name of the embeddings model."""
-    try:
-        settings = cl.user_session.get("settings")
-        return settings.get("embeddings_model")
-    except ChainlitContextException:
-        return await get_default_embeddings_model_name()
 
 def check_collections(collections_to_check: list[str]) -> str:
     """

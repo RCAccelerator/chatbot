@@ -6,10 +6,11 @@ from openai.types.chat import (
 
 from rca_accelerator_chatbot.config import config
 from rca_accelerator_chatbot.constants import (
-    NO_RESULTS_FOUND, SEARCH_RESULTS_TEMPLATE, SEARCH_RESULT_TRUNCATED_CHUNK
+    NO_RESULTS_FOUND, SEARCH_RESULTS_TEMPLATE, SEARCH_RESULT_TRUNCATED_CHUNK,
+    DOCS_PROFILE, CI_LOGS_PROFILE, RCA_FULL_PROFILE
 )
+from rca_accelerator_chatbot.models import gen_model_provider
 from rca_accelerator_chatbot.settings import HistorySettings, ThreadMessages
-from rca_accelerator_chatbot.generation import get_system_prompt_per_profile
 
 
 def search_result_to_str(search_result: dict) -> str:
@@ -40,6 +41,7 @@ async def build_prompt(
         user_message: str,
         profile_name: str,
         history_settings: HistorySettings,
+        model_name: str,
 ) -> (bool, ThreadMessages):
     """Generate a full prompt that gets sent to the generative model.
 
@@ -59,7 +61,7 @@ async def build_prompt(
         user_message: The user's message content
         history_settings: Settings for the message history
         profile_name: The name of the profile for which to generate the prompt
-
+        model_name: The name of the generative model
     Returns:
         tuple: A tuple containing two elements:
             - List of messages that make up the full prompt. Each return value
@@ -84,7 +86,7 @@ async def build_prompt(
     full_prompt_len += len(str(full_prompt))
 
     # Calculate the maximum character limit estimation for the generative model.
-    approx_max_chars = (config.generative_model_max_context *
+    approx_max_chars = (gen_model_provider.get_context_size(model_name) *
                         config.generative_model_max_context_percentage *
                         config.chars_per_token_estimation)
 
@@ -138,3 +140,17 @@ async def build_prompt(
     ))
 
     return is_error, full_prompt
+
+def get_system_prompt_per_profile(profile_name: str) -> str:
+    """Get the system prompt for the specified profile.
+
+    Args:
+        profile_name: The name of the profile for which to get the system prompt.
+    Returns:
+        The system prompt for the specified profile.
+    """
+    if profile_name == DOCS_PROFILE:
+        return config.docs_system_prompt
+    if profile_name in [CI_LOGS_PROFILE, RCA_FULL_PROFILE]:
+        return config.ci_logs_system_prompt + config.jira_formatting_syntax_prompt
+    return config.ci_logs_system_prompt
