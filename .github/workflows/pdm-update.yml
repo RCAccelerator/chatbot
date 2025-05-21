@@ -17,8 +17,8 @@ jobs:
         with:
           ref: main
       - name: Update dependencies
-        uses: pdm-project/update-deps-action@v1.11
+        uses: astral-sh/setup-uv@v5
         with:
           token: ${{ secrets.GH_UPDATE_TOKEN }}
-          commit-message: "chore: Update pdm.lock"
+          commit-message: "chore: Update uv.lock"
           pr-title: ":seedling: Update Python dependencies"

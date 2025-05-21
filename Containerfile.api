@@ -10,8 +10,8 @@ WORKDIR /app
 RUN chown -R chatuser:chatgroup /app
 
 COPY src/ src/
-COPY pdm.lock pyproject.toml Makefile api-entrypoint.sh LICENSE README.md .
-RUN make install-pdm install-global
+COPY uv.lock pyproject.toml Makefile api-entrypoint.sh LICENSE README.md .
+RUN make install-uv install-global
 RUN chmod +x api-entrypoint.sh
 
 USER chatuser
