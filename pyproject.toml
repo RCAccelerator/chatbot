@@ -22,7 +22,7 @@ dependencies = [
 requires-python = "==3.12.*"
 license = "Apache-2.0"
 
-[tool.pdm.dev-dependencies]
+[project.optional-dependencies]
 dev = [
     "tox==4.25.0",
     "pylint==3.0.0",

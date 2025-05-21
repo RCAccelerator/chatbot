@@ -1,19 +1,19 @@
 .PHONY: help install-deps tox
 
-install-pdm: ## Install required utilities/tools
-	@command -v pdm > /dev/null || { echo >&2 "pdm is not installed. Installing..."; pip install --upgrade pip pdm; }
+install-uv: ## Install required utilities/tools
+	@command -v uv > /dev/null || { echo >&2 "uv is not installed. Installing..."; pip install --upgrade pip uv; }
 
-install-global: install-pdm pdm-lock-check ## Install rca-accelerator-chatbot to global Python directories
-	pdm install --global --project .
+install-global: install-uv uv-lock-check ## Install rca-accelerator-chatbot to global Python directories
+	uv pip install .
 
-install-deps: install-pdm ## Install Python dependencies
-	pdm sync
+install-deps: install-uv ## Install Python dependencies
+	uv sync
 
-install-dev-deps: install-pdm ## Install Python dependencies
-	pdm sync --dev
+install-dev-deps: install-uv ## Install Python dependencies
+	uv sync --dev
 
-pdm-lock-check: ## Check that the pdm.lock file is in a good shape
-	pdm lock --check
+uv-lock-check: ## Check that the uv.lock file is in a good shape
+	uv lock --check
 
 tox: ## Run tox
 	tox

@@ -6,9 +6,9 @@ RUN groupadd -g 65532 chatgroup && \
 
 WORKDIR /app
 
-COPY pdm.lock pyproject.toml Makefile LICENSE README.md .
+COPY uv.lock pyproject.toml Makefile LICENSE README.md .
 COPY src/ src/
-RUN make install-pdm install-global
+RUN make install-uv install-global
 
 RUN chown -R chatuser:chatgroup /app
 
